@@ -1,0 +1,12 @@
+# Core
+pandas==2.1.4
+numpy==1.26.2
+python-dotenv==1.0.0
+loguru==0.7.2
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# Utilities
+python-dateutil==2.8.2

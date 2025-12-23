@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   Dark palette utilities (OpenAI-inspired) — SAFE VERSION
+   ========================================================= */
+
+/* ❌ DO NOT apply `dark` in CSS
+   Dark mode must be enabled in JSX:
+   <html class="dark">
+*/
+
+@layer base {
+  body {
+    @apply bg-base text-text-primary;
+    background: linear-gradient(180deg, #0f1115 0%, #0c101a 100%);
+  }
+}
+
+@layer utilities {
+  /* =======================================================
+     Core surfaces
+     ======================================================= */
+  .bg-base {
+    background-color: #0f1115;
+  }
+  .bg-layer1 {
+    background-color: #151821;
+  }
+  .bg-layer2 {
+    background-color: #1c1f2b;
+  }
+  .bg-layer3 {
+    background-color: #24283a;
+  }
+
+  /* =======================================================
+     Text colors
+     ======================================================= */
+  .text-text-primary {
+    color: #e6e8ee;
+  }
+  .text-text-secondary {
+    color: #a8adbd;
+  }
+  .text-text-muted {
+    color: #6f748a;
+  }
+  .text-text-inverse {
+    color: #0f1115;
+  }
+
+  /* =======================================================
+     Borders
+     ======================================================= */
+  .border-borderDark-subtle {
+    border-color: #2a2f45;
+  }
+  /* NEW: extra-light border for buttons */
+  .border-borderDark-faint {
+    border-color: rgba(230, 232, 238, 0.12);
+  }
+
+  /* =======================================================
+   Buttons — OpenAI calm primary
+   ======================================================= */
+.btn-primary {
+  background-color: #f9f9f9; /* same as bg-layer1 */
+  color: #0d0d0d;
+  border: 1px solid #2a2f45; /* border-borderDark-subtle */
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background-color: #d8d9dd; /* bg-layer2 */
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+  /* =======================================================
+     Accent and states
+     ======================================================= */
+  .text-accent {
+    color: #7aa2ff;
+  }
+  .text-success {
+    color: #3ddc97;
+  }
+
+  /* =======================================================
+     Enforce dark + square UI (override legacy styles)
+     ======================================================= */
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-gray-200,
+  .bg-slate-50,
+  .bg-slate-100 {
+    background-color: #1c1f2b !important;
+  }
+
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700,
+  .text-gray-600,
+  .text-gray-500,
+  .text-slate-900,
+  .text-slate-800,
+  .text-slate-700,
+  .text-slate-600,
+  .text-slate-500 {
+    color: #e6e8ee !important;
+  }
+
+  .border-gray-200,
+  .border-gray-300,
+  .border-slate-200,
+  .border-slate-300 {
+    border-color: #2a2f45 !important;
+  }
+
+/* =======================================================
+   OpenAI-style subtle rounding
+   ======================================================= */
+
+/* Block excessive rounding only */
+  .rounded-lg,
+  .rounded-xl,
+  .rounded-2xl,
+  .rounded-3xl,
+  .rounded-full {
+  border-radius: 0.375rem !important; /* OpenAI-like */
+}
+
+/* Allow subtle rounding */
+  .rounded,
+  .rounded-sm,
+  .rounded-md {
+  border-radius: 0.375rem !important;
+}
+
+
+  .shadow,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+}
