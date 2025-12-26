@@ -9,13 +9,11 @@ This is a production-grade educational stock trading simulator with AI-powered r
 ## Replit Environment Setup
 
 ### Running the Application
-- **Frontend**: Next.js on port 5000 (exposed to web)
-- **Backend API**: FastAPI on port 8000 (internal)
+- **Backend API**: FastAPI on port 5000 (exposed to web)
 - **Database**: PostgreSQL via Replit's built-in database (DATABASE_URL)
 
 ### Workflows
-1. **Frontend** - `cd web && npm run dev` (port 5000, webview)
-2. **Backend API** - `cd api && python -m uvicorn app.main:app --host localhost --port 8000 --reload` (console)
+1. **API Server** - `cd api && python -m uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload` (webview)
 
 ### Database Schemas
 The application uses 5 PostgreSQL schemas: `agents`, `features`, `market_data`, `multiplayer`, `news`
