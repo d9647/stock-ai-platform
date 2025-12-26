@@ -24,14 +24,11 @@ class Settings(BaseSettings):
     API_PORT: int = int(os.getenv("API_PORT", 8000))
     API_PREFIX: str = "/api/v1"
 
-    # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL",
-        "postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev"
-    )
+    # Database - Use Replit's DATABASE_URL
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
 
-    # Redis
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://192.168.5.126:6379/0")
+    # Redis - Optional for Replit environment
+    REDIS_URL: str = os.getenv("REDIS_URL", "")
     CACHE_TTL: int = 300  # 5 minutes default cache
 
     # Security
@@ -40,8 +37,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
-    # CORS
-    CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "http://192.168.5.126:3000").split(",")
+    # CORS - Allow all origins for Replit proxy
+    CORS_ORIGINS: list = ["*"]
 
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
