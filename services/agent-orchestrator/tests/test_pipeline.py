@@ -54,6 +54,7 @@ def mock_dependencies():
             "outputs_written": 4,
             "recommendation_written": True
         }
+        mock_writer_instance.recommendation_exists.return_value = False
         
         yield {
             "graph": mock_graph_instance,
@@ -126,6 +127,7 @@ class TestDailyAgentPipeline:
         assert summary["total_tickers"] == 3
         assert summary["successful"] == 3
         assert summary["failed"] == 0
+        assert summary["skipped"] == 0
         assert "recommendations" in summary
         assert summary["recommendations"]["BUY"] == 3
 

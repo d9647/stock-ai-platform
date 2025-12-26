@@ -2,7 +2,7 @@
 Fetch news articles from Finnhub and NewsAPI.
 Priority: Finnhub for better financial coverage.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Set, Tuple
 import time
 
@@ -35,8 +35,8 @@ class NewsFetcher:
         ticker: str,
         start_date: datetime,
         end_date: datetime,
-        existing_urls: "set[str] | None" = None,
-        existing_keys: "set[tuple[str, datetime]] | None" = None,
+        existing_urls: "set[tuple[str, str]] | None" = None,  # (ticker, url)
+        existing_keys: "set[tuple[str, str, datetime]] | None" = None,  # (ticker, headline, dt)
     ) -> pd.DataFrame:
         """
         Fetch historical news for a ticker.
@@ -65,7 +65,9 @@ class NewsFetcher:
         # Fallback to NewsAPI if Finnhub fails
         if self.newsapi_client:
             try:
-                articles = self._fetch_from_newsapi(ticker, start_date, end_date)
+                articles = self._fetch_from_newsapi(
+                    ticker, start_date, end_date, existing_urls, existing_keys
+                )
                 if articles:
                     logger.info(f"Fetched {len(articles)} articles from NewsAPI for {ticker}")
                     return self._articles_to_dataframe(articles, ticker)
@@ -161,10 +163,15 @@ class NewsFetcher:
                     headline = item.get("headline", "")
                     url = item.get("url", "")
 
-                    # Skip if already seen
-                    if existing_urls and url and url in existing_urls:
+                    # Skip if already seen for this ticker
+                    norm_ts = (
+                        published_at
+                        if published_at.tzinfo
+                        else published_at.replace(tzinfo=timezone.utc)
+                    )
+                    if existing_urls and url and (ticker, url) in existing_urls:
                         continue
-                    if existing_keys and (headline, published_at) in existing_keys:
+                    if existing_keys and (ticker, headline, norm_ts) in existing_keys:
                         continue
 
                     articles.append({
@@ -192,7 +199,9 @@ class NewsFetcher:
         self,
         ticker: str,
         start_date: datetime,
-        end_date: datetime
+        end_date: datetime,
+        existing_urls: "set[tuple[str, str]] | None" = None,
+        existing_keys: "set[tuple[str, str, datetime]] | None" = None,
     ) -> List[dict]:
         """
         Fetch from NewsAPI (backup).
@@ -223,15 +232,30 @@ class NewsFetcher:
 
             if response.get("status") == "ok":
                 for item in response.get("articles", []):
+                    published_at = datetime.strptime(
+                        item.get("publishedAt", ""),
+                        "%Y-%m-%dT%H:%M:%SZ"
+                    )
+                    headline = item.get("title", "")
+                    url = item.get("url", "")
+
+                    norm_ts = (
+                        published_at
+                        if published_at.tzinfo
+                        else published_at.replace(tzinfo=timezone.utc)
+                    )
+
+                    if existing_urls and url and (ticker, url) in existing_urls:
+                        continue
+                    if existing_keys and (ticker, headline, norm_ts) in existing_keys:
+                        continue
+
                     articles.append({
-                        "published_at": datetime.strptime(
-                            item.get("publishedAt", ""),
-                            "%Y-%m-%dT%H:%M:%SZ"
-                        ),
-                        "headline": item.get("title", ""),
+                        "published_at": published_at,
+                        "headline": headline,
                         "content": item.get("description", "") or item.get("content", ""),
                         "source": item.get("source", {}).get("name", "NewsAPI"),
-                        "url": item.get("url", ""),
+                        "url": url,
                         "author": item.get("author", "")
                     })
 

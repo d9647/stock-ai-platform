@@ -5,6 +5,27 @@
 import type { RecommendationType, SignalType, RiskLevel } from './api';
 
 /**
+ * Technical indicators for a ticker on a specific day
+ */
+export interface TechnicalIndicators {
+  sma_20?: number;
+  sma_50?: number;
+  sma_200?: number;
+  ema_12?: number;
+  ema_26?: number;
+  rsi_14?: number;
+  macd?: number;
+  macd_signal?: number;
+  macd_histogram?: number;
+  bollinger_upper?: number;
+  bollinger_middle?: number;
+  bollinger_lower?: number;
+  atr_14?: number;
+  obv?: number;
+  volatility_30d?: number;
+}
+
+/**
  * A single day's market data and AI recommendations
  */
 export interface GameDay {
@@ -14,6 +35,7 @@ export interface GameDay {
   recommendations: DayRecommendation[];
   prices: Record<string, DayPrice>; // ticker -> prices
   news?: NewsArticle[]; // News articles for this day
+  technical_indicators?: Record<string, TechnicalIndicators>; // ticker -> technical indicators
 }
 
 /**
@@ -125,10 +147,11 @@ export interface ScoreBreakdown {
  * Game configuration
  */
 export interface GameConfig {
-  initialCash: number; // Default: $10,000
+  initialCash: number; // Default: $100,000
   numDays: number; // Default: 30
   tickers: string[]; // Default: ['AAPL', 'MSFT', 'GOOGL', 'AMZN']
   difficulty: 'easy' | 'medium' | 'hard'; // Affects scoring thresholds
+  startDate?: string; // Optional start date for simulations
 }
 
 /**

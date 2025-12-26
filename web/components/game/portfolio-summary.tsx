@@ -42,17 +42,17 @@ export function PortfolioSummary() {
   const holdingsValue = portfolioValue - player.cash;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-5">
-      <h2 className="text-lg font-bold text-gray-900 mb-3">Your Portfolio</h2>
+    <div className="bg-layer1 rounded-lg shadow-soft p-5 border border-borderDark-subtle">
+      <h2 className="text-lg font-bold text-text-primary mb-3">Your Portfolio</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
         {/* Total Value */}
         <div>
-          <div className="text-sm text-gray-600">Total Value</div>
-          <div className="text-xl font-bold text-gray-900">{formatCurrency(portfolioValue)}</div>
+          <div className="text-sm text-text-muted">Total Value</div>
+          <div className="text-xl font-bold text-text-primary">{formatCurrency(portfolioValue)}</div>
           <div
             className={`text-xs font-semibold ${
-              playerReturn >= 0 ? 'text-green-600' : 'text-red-600'
+              playerReturn >= 0 ? 'text-success' : 'text-error'
             }`}
           >
             {playerReturn >= 0 ? '+' : ''}
@@ -62,39 +62,39 @@ export function PortfolioSummary() {
 
         {/* Cash */}
         <div>
-          <div className="text-sm text-gray-600">Cash</div>
-          <div className="text-xl font-bold text-gray-900">{formatCurrency(player.cash)}</div>
-          <div className="text-xs text-gray-500">{formatPercent(player.cash / portfolioValue)}</div>
+          <div className="text-sm text-text-muted">Cash</div>
+          <div className="text-xl font-bold text-text-primary">{formatCurrency(player.cash)}</div>
+          <div className="text-xs text-text-secondary">{formatPercent(player.cash / portfolioValue)}</div>
         </div>
 
         {/* Holdings */}
         <div>
-          <div className="text-sm text-gray-600">Holdings Value</div>
-          <div className="text-xl font-bold text-gray-900">{formatCurrency(holdingsValue)}</div>
-          <div className="text-xs text-gray-500">
+          <div className="text-sm text-text-muted">Holdings Value</div>
+          <div className="text-xl font-bold text-text-primary">{formatCurrency(holdingsValue)}</div>
+          <div className="text-xs text-text-secondary">
             {formatPercent(holdingsValue / portfolioValue)}
           </div>
         </div>
       </div>
 
       {/* vs. AI */}
-      <div className="mt-5 pt-5 border-t border-gray-200 text-sm">
+      <div className="mt-5 pt-5 border-t border-borderDark-subtle text-sm">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm text-gray-600">AI Portfolio</div>
-            <div className="text-base font-semibold text-gray-700">
+            <div className="text-sm text-text-muted">AI Portfolio</div>
+            <div className="text-base font-semibold text-text-secondary">
               {formatCurrency(aiPortfolioValue)}
             </div>
           </div>
           <div className="text-right">
             {beatAI ? (
-              <div className="text-green-600 font-bold text-base">
+              <div className="text-success font-bold text-base">
                 🎯 You're winning!
               </div>
             ) : (
-              <div className="text-orange-600 font-bold text-base">AI is ahead</div>
+              <div className="text-warning font-bold text-base">AI is ahead</div>
             )}
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-text-muted">
               AI Return: {formatPercent(aiReturn / 100)}
             </div>
           </div>

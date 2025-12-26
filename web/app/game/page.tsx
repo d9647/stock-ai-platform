@@ -12,9 +12,18 @@ export default function GamePage() {
   const [showLobby, setShowLobby] = useState(true);
   const [gameConfig, setGameConfig] = useState({
     days: 30,
-    //tickers: ['AAPL', 'MSFT', 'GOOGL', 'AMZN'],
-    tickers: ['AAPL'],
+    startDate: useGameStore.getState().config.startDate || '',
+    tickers: ['AAPL','MSFT','GOOGL','NVDA','AMZN','TSLA','META','WMT','MU','AVGO','TSM','JPM','BRK.A','INTC','AMD','QCOM','TXN','LRCX','KLAC','ASML','LLY','ORCL','V','PYPL','MA','JNJ','PLTR'],
   });
+
+  const computeEndDate = () => {
+    if (!gameConfig.startDate) return undefined;
+    const start = new Date(gameConfig.startDate);
+    if (Number.isNaN(start.getTime())) return undefined;
+    const end = new Date(start);
+    end.setDate(start.getDate() + gameConfig.days - 1);
+    return end.toISOString().slice(0, 10);
+  };
 
   // Adjust lobby visibility based on mode/status
   useEffect(() => {
@@ -36,6 +45,8 @@ export default function GamePage() {
   const { data: gameData, isLoading, error } = useGameData({
     days: gameConfig.days,
     tickers: gameConfig.tickers,
+    startDate: gameConfig.startDate,
+    endDate: computeEndDate(),
     enabled: shouldFetchData,
   });
 

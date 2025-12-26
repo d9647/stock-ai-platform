@@ -157,6 +157,11 @@ def main():
         help="Single ticker to process (or omit for all default tickers)"
     )
     parser.add_argument(
+        "--tickers",
+        nargs="+",
+        help="Multiple tickers to process (space separated)"
+    )
+    parser.add_argument(
         "--days",
         type=int,
         default=365 * config.HISTORICAL_YEARS,
@@ -173,12 +178,17 @@ def main():
     pipeline = DailyMarketDataPipeline()
 
     try:
-        if args.ticker:
-            # Single ticker
-            result = pipeline.run_for_ticker(args.ticker, start_date, end_date)
-            print(f"\nResult: {result}")
+        tickers = args.tickers or ([args.ticker] if args.ticker else None)
+        if tickers:
+            results = pipeline.run_for_multiple_tickers(
+                tickers=tickers,
+                start_date=start_date,
+                end_date=end_date
+            )
+            print(f"\nResults:")
+            for r in results:
+                print(f"  {r}")
         else:
-            # Multiple tickers
             results = pipeline.run_for_multiple_tickers(
                 start_date=start_date,
                 end_date=end_date

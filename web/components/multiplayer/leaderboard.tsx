@@ -97,6 +97,23 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
     }
   };
 
+  // Append AI benchmark as a virtual entry (ranked last; no player_id collision)
+  const leaderboardWithAI: LeaderboardEntry[] = useMemo(() => {
+    if (!room) return sortedLeaderboard;
+    const aiEntry: LeaderboardEntry = {
+      rank: sortedLeaderboard.length + 1,
+      player_id: 'AI_BENCHMARK',
+      player_name: 'AI Agent',
+      score: 0,
+      grade: 'N/A',
+      portfolio_value: 0,
+      total_return_pct: 0,
+      current_day: room.current_day,
+      is_finished: room.status === 'finished',
+    };
+    return [...sortedLeaderboard, aiEntry];
+  }, [sortedLeaderboard, room]);
+
   const SortIcon = ({ active }: { active: boolean }) => (
     <span className={`ml-1 ${active ? 'text-text-primary' : 'text-text-muted'}`}>
       {sortDir === 'asc' ? '▲' : '▼'}
@@ -169,7 +186,7 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
         <div className="max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-text-primary">
-              🏆 Leaderboard
+              Leaderboard
             </h1>
             <p className="text-text-muted text-sm mt-1">
               Room {room.room_code} • {room.room_name || 'Classroom Game'}
@@ -177,13 +194,13 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
           </div>
 
           <button
-            onClick={() =>
-              router.push(
-                isTeacher
-                  ? `/multiplayer/room/${room.room_code}`
-                  : '/game'
-              )
-            }
+            onClick={() => {
+              if (room?.room_code) {
+                router.push(`/multiplayer/room/${room.room_code}`);
+              } else {
+                router.back();
+              }
+            }}
             className="text-sm text-text-secondary hover:text-accent"
           >
             ← Back
@@ -218,7 +235,7 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
           </div>
 
           {/* Rows */}
-          {sortedLeaderboard.map((entry) => {
+          {leaderboardWithAI.map((entry) => {
             const isCurrentUser =
               currentPlayerName &&
               entry.player_name === currentPlayerName;

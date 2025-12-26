@@ -65,7 +65,7 @@ export default function HomePage() {
               href="/game"
               className="inline-block btn-primary px-7 py-2.5 text-sm font-medium border border-borderDark-subtle rounded-sm"
             >
-              Start solo simulation
+              Play Solo
             </Link>
 
             {/* Divider */}
@@ -83,13 +83,13 @@ export default function HomePage() {
                 href="/multiplayer/create"
                 className="inline-block px-6 py-2.5 text-sm font-medium border border-borderDark-subtle rounded-sm text-text-secondary hover:text-text-primary hover:bg-layer2 transition"
               >
-                Create classroom
+                Create Room
               </Link>
               <Link
                 href="/multiplayer/join"
                 className="inline-block px-6 py-2.5 text-sm font-medium border border-borderDark-subtle rounded-sm text-text-secondary hover:text-text-primary hover:bg-layer2 transition"
               >
-                Join classroom
+                Join Room
               </Link>
             </div>
 

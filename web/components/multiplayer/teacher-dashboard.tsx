@@ -119,12 +119,19 @@ export function TeacherDashboard({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-            👨‍🏫 Teacher Controls
+            Teacher Controls
           </h2>
           <p className="text-xs text-text-muted">
-            Synchronous classroom mode
+            Synchronous room mode
           </p>
         </div>
+
+        <a
+          href={`/multiplayer/leaderboard/${room.room_code}`}
+          className="text-xs text-accent hover:underline"
+        >
+          View leaderboard
+        </a>
 
         {roomState && room.game_mode === 'sync' && (
           <div className="text-right">

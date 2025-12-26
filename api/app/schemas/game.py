@@ -63,6 +63,25 @@ class NewsArticle(BaseModel):
     url: Optional[str] = Field(None, description="Article URL")
 
 
+class TechnicalIndicators(BaseModel):
+    """Technical indicators for a ticker on a specific day."""
+    sma_20: Optional[float] = Field(None, description="20-day Simple Moving Average")
+    sma_50: Optional[float] = Field(None, description="50-day Simple Moving Average")
+    sma_200: Optional[float] = Field(None, description="200-day Simple Moving Average")
+    ema_12: Optional[float] = Field(None, description="12-day Exponential Moving Average")
+    ema_26: Optional[float] = Field(None, description="26-day Exponential Moving Average")
+    rsi_14: Optional[float] = Field(None, ge=0, le=100, description="14-day Relative Strength Index")
+    macd: Optional[float] = Field(None, description="MACD line")
+    macd_signal: Optional[float] = Field(None, description="MACD signal line")
+    macd_histogram: Optional[float] = Field(None, description="MACD histogram")
+    bollinger_upper: Optional[float] = Field(None, description="Bollinger Band upper bound")
+    bollinger_middle: Optional[float] = Field(None, description="Bollinger Band middle line")
+    bollinger_lower: Optional[float] = Field(None, description="Bollinger Band lower bound")
+    atr_14: Optional[float] = Field(None, description="14-day Average True Range")
+    obv: Optional[float] = Field(None, description="On Balance Volume")
+    volatility_30d: Optional[float] = Field(None, description="30-day Historical Volatility")
+
+
 class GameDayResponse(BaseModel):
     """Complete data for a single game day."""
     day: int = Field(..., description="Day number (0-indexed)")
@@ -71,6 +90,7 @@ class GameDayResponse(BaseModel):
     recommendations: List[GameRecommendation] = Field(..., description="AI recommendations for all tickers")
     prices: Dict[str, GamePrice] = Field(..., description="OHLC prices for all tickers")
     news: List[NewsArticle] = Field(default_factory=list, description="News articles for this day")
+    technical_indicators: Dict[str, TechnicalIndicators] = Field(default_factory=dict, description="Technical indicators for all tickers")
 
 
 class GameDataResponse(BaseModel):

@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from loguru import logger
 
-from api.app.models.agents import AgentOutput, StockRecommendation
+from api.app.models.agents import AgentOutput, StockRecommendation, AgentExecutionLog
 from ..config import config
 
 
@@ -141,10 +141,65 @@ class AgentOutputWriter:
 
     def _write_execution_log(self, final_state: Dict[str, Any]):
         """Write execution log to agents.agent_execution_logs table."""
-        # TODO: Implement proper execution logging matching the schema
-        # For now, skip execution logs to get the pipeline working
-        logger.debug("Skipping execution log write (not yet implemented)")
+        try:
+            start_ts = final_state.get("execution_start")
+            started_at = (
+                datetime.fromtimestamp(start_ts)
+                if isinstance(start_ts, (int, float))
+                else datetime.utcnow()
+            )
+            completed_at = datetime.utcnow()
+            duration_seconds = (completed_at - started_at).total_seconds()
+
+            execution_id = final_state.get("execution_id") or f"{final_state.get('ticker')}_{final_state.get('as_of_date')}"
+            status = "success" if not final_state.get("errors") else "failed"
+            error_message = "; ".join(final_state.get("errors", [])) or None
+
+            # Avoid duplicate logs for the same execution_id/agent_type/date
+            existing = (
+                self.session.query(AgentExecutionLog)
+                .filter_by(
+                    execution_id=execution_id,
+                    agent_type="pipeline",
+                    as_of_date=final_state.get("as_of_date"),
+                )
+                .first()
+            )
+            if existing:
+                logger.debug(f"Execution log {execution_id} already exists, skipping")
+                return
+
+            log_entry = AgentExecutionLog(
+                execution_id=execution_id,
+                agent_type="pipeline",
+                ticker=final_state.get("ticker"),
+                as_of_date=final_state.get("as_of_date"),
+                started_at=started_at,
+                completed_at=completed_at,
+                duration_seconds=duration_seconds,
+                status=status,
+                error_message=error_message,
+                tokens_used=final_state.get("tokens_used"),
+                cost_usd=final_state.get("cost_usd"),
+            )
+
+            self.session.add(log_entry)
+            logger.debug(f"Wrote execution log {execution_id}")
+
+        except Exception as e:
+            logger.error(f"Error writing execution log: {e}")
+            raise
 
     def close(self):
         """Close database session."""
         self.session.close()
+
+    # Convenience helpers
+    def recommendation_exists(self, ticker: str, as_of_date) -> bool:
+        """Return True if a recommendation already exists for ticker/date."""
+        return (
+            self.session.query(StockRecommendation)
+            .filter_by(ticker=ticker, as_of_date=as_of_date)
+            .first()
+            is not None
+        )

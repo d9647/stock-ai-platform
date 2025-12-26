@@ -1,32 +1,72 @@
 import json
-from pathlib import Path
+import shutil
 from datetime import datetime
-from typing import Set, Tuple
 from pathlib import Path
+from typing import Set, Tuple
+
 from loguru import logger
 
 import sys
-from pathlib import Path
+
 # Add project root to path
 project_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(project_root))
 
 
-
 class NewsSeenCache:
-    def __init__(self, path: str):
-        self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(self, cache_dir: Path, ticker: str):
+        self.cache_dir = cache_dir
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.ticker = ticker.upper()
+        self.path = self.cache_dir / f"news_seen_{self.ticker}.jsonl"
+        self._migrate_legacy_files()
+        self._backup_cache()
 
-    def load(self) -> tuple[Set[str], Set[Tuple[str, datetime]]]:
+    def _migrate_legacy_files(self):
         """
-        Load cached URLs and (headline, published_at) keys.
+        If a legacy shared cache exists (news_seen.jsonl and backups),
+        copy them to ticker-specific filenames.
         """
-        urls: Set[str] = set()
-        keys: Set[Tuple[str, datetime]] = set()
+        legacy = self.cache_dir / "news_seen.jsonl"
+        if legacy.exists() and not self.path.exists():
+            try:
+                shutil.copy2(legacy, self.path)
+                logger.info(f"Migrated legacy cache {legacy} -> {self.path}")
+            except Exception as e:
+                logger.warning(f"Failed to migrate legacy cache {legacy}: {e}")
+
+        # Migrate backups
+        for bak in self.cache_dir.glob("news_seen.jsonl.bak.*"):
+            ts = bak.suffix.split(".")[-1]
+            target = self.cache_dir / f"news_seen_{self.ticker}.jsonl.bak.{ts}"
+            if not target.exists():
+                try:
+                    shutil.copy2(bak, target)
+                    logger.info(f"Migrated legacy cache backup {bak} -> {target}")
+                except Exception as e:
+                    logger.warning(f"Failed to migrate backup {bak}: {e}")
+
+    def _backup_cache(self):
+        """Backup the current ticker-specific cache file."""
+        if not self.path.exists():
+            return
+        ts = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        backup_path = self.path.with_suffix(self.path.suffix + f".bak.{ts}")
+        try:
+            shutil.copy2(self.path, backup_path)
+            logger.info(f"Backed up news cache to {backup_path}")
+        except Exception as e:
+            logger.warning(f"Failed to backup news cache: {e}")
+
+    def load(self) -> tuple[Set[Tuple[str, str]], Set[Tuple[str, str, datetime]]]:
+        """
+        Load cached URLs and (headline, published_at) keys for this ticker.
+        """
+        urls: Set[Tuple[str, str]] = set()  # (ticker, url)
+        keys: Set[Tuple[str, str, datetime]] = set()  # (ticker, headline, published_at)
 
         if not self.path.exists():
-            logger.info("News cache not found; starting with empty cache")
+            logger.info(f"News cache not found for {self.ticker}; starting empty")
             return urls, keys
 
         with self.path.open("r", encoding="utf-8") as f:
@@ -36,19 +76,20 @@ class NewsSeenCache:
                     url = row.get("url")
                     headline = row.get("headline")
                     published_at = row.get("published_at")
+                    ticker = (row.get("ticker") or self.ticker).upper()
 
-                    if url:
-                        urls.add(url)
+                    if ticker and url:
+                        urls.add((ticker, url))
 
-                    if headline and published_at:
+                    if ticker and headline and published_at:
                         keys.add(
-                            (headline, datetime.fromisoformat(published_at))
+                            (ticker, headline, datetime.fromisoformat(str(published_at)))
                         )
                 except Exception:
                     continue
 
         logger.info(
-            f"Loaded news cache: {len(urls)} URLs, {len(keys)} article keys"
+            f"Loaded news cache for {self.ticker}: {len(urls)} ticker-URLs, {len(keys)} ticker/headline keys"
         )
         return urls, keys
 
@@ -62,50 +103,18 @@ class NewsSeenCache:
 
         with self.path.open("a", encoding="utf-8") as f:
             for a in articles:
+                published_at = a.get("published_at")
+                if isinstance(published_at, datetime):
+                    published_at = published_at.isoformat()
+
                 f.write(
                     json.dumps(
                         {
+                            "ticker": (a.get("ticker") or self.ticker).upper(),
                             "url": a.get("url"),
                             "headline": a.get("headline"),
-                            "published_at": a["published_at"].isoformat()
-                            if isinstance(a.get("published_at"), datetime)
-                            else str(a.get("published_at")),
+                            "published_at": published_at,
                         }
                     )
                     + "\n"
                 )
-
-###----------------------------------------------------------
-### One-time bootstrap: rebuild news cache from database.
-###------------------------------------------------------
-'''
-if __name__ == "__main__":
-    """
-    One-time bootstrap: rebuild news cache from database.
-    """
-    from api.app.models.news import NewsArticle
-    from api.app.db import get_db
-
-    cache = NewsSeenCache("data/news_cache/news_seen.jsonl")
-
-    db = next(get_db())
-
-    rows = db.query(
-        NewsArticle.url,
-        NewsArticle.headline,
-        NewsArticle.published_at,
-    ).all()
-
-    articles = [
-        {
-            "url": r.url,
-            "headline": r.headline,
-            "published_at": r.published_at,
-        }
-        for r in rows
-    ]
-
-    cache.append(articles)
-
-    print(f"Bootstrapped cache with {len(articles)} articles")
-'''

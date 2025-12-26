@@ -11,7 +11,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(project_root))
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects.postgresql import insert
 from loguru import logger
@@ -264,6 +264,63 @@ class NewsDataWriter:
 
         except Exception as e:
             logger.error(f"Error retrieving article IDs: {e}")
+            raise
+
+    def get_scored_article_keys_for_ticker(self, ticker: str) -> Dict[tuple, str]:
+        """
+        Retrieve article keys that already have sentiment scores.
+        Returns mapping (ticker, published_at, headline) -> article_id.
+        """
+        try:
+            rows = (
+                self.session.query(
+                    NewsArticle.ticker,
+                    NewsArticle.published_at,
+                    NewsArticle.headline,
+                    NewsArticle.id,
+                )
+                .join(
+                    NewsSentimentScore,
+                    NewsSentimentScore.article_id == NewsArticle.id,
+                )
+                .filter(NewsArticle.ticker == ticker)
+                .all()
+            )
+
+            mapping = {}
+            for row in rows:
+                key = (row.ticker, row.published_at, row.headline)
+                mapping[key] = str(row.id)
+
+            logger.info(f"Retrieved {len(mapping)} scored article keys for {ticker}")
+            return mapping
+        except Exception as e:
+            logger.error(f"Error retrieving scored article keys: {e}")
+            raise
+
+    def get_article_date_bounds(self, ticker: str):
+        """
+        Return (earliest_date, latest_date) for articles of a ticker.
+        Dates are timezone-naive (date only). Returns (None, None) if none exist.
+        """
+        try:
+            row = (
+                self.session.query(
+                    func.min(NewsArticle.published_at),
+                    func.max(NewsArticle.published_at)
+                )
+                .filter(NewsArticle.ticker == ticker)
+                .one()
+            )
+            earliest, latest = row
+            if earliest:
+                earliest = earliest.date()
+            if latest:
+                latest = latest.date()
+            logger.info(f"Date bounds for {ticker}: earliest={earliest}, latest={latest}")
+            return earliest, latest
+        except Exception as e:
+            logger.error(f"Error retrieving date bounds: {e}")
             raise
 
     def close(self):

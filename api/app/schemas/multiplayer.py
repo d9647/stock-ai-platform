@@ -8,7 +8,7 @@ from datetime import datetime
 
 class GameConfigSchema(BaseModel):
     """Game configuration for a room."""
-    initial_cash: int = Field(default=10000, description="Starting cash for each player")
+    initial_cash: int = Field(default=100000, description="Starting cash for each player")
     num_days: int = Field(default=30, ge=1, le=90, description="Number of calendar days")
     tickers: List[str] = Field(default=["AAPL", "MSFT", "GOOGL", "AMZN"], description="Stock tickers to trade")
     difficulty: str = Field(default="medium", description="Game difficulty: easy, medium, hard")

@@ -115,7 +115,7 @@ async def join_room(request: JoinRoomRequest, db: Session = Depends(get_db)):
         )
 
     # Create player
-    initial_cash = room.config.get("initialCash", 10000)
+    initial_cash = room.config.get("initialCash", 100000)
     player = Player(
         room_id=room.id,
         player_name=request.player_name,

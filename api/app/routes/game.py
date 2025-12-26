@@ -13,11 +13,14 @@ from fastapi import Depends
 
 from ..db import get_db
 from ..models.agents import StockRecommendation
-from ..models.market_data import OHLCVPrice
+from ..models.market_data import OHLCVPrice, TechnicalIndicator
 from ..models.news import NewsArticle as NewsArticleModel, NewsSentimentScore
-from ..schemas.game import GameDataResponse, GameDayResponse, GameRecommendation, GamePrice, NewsArticle
+from ..schemas.game import GameDataResponse, GameDayResponse, GameRecommendation, GamePrice, NewsArticle, TechnicalIndicators
 
 router = APIRouter(prefix="/api/v1/game", tags=["game"])
+
+# Earliest date allowed for beginners (guardrail for simulations)
+MIN_START_DATE = date(2025, 1, 1)
 
 
 def is_trading_day(check_date: date) -> bool:
@@ -69,7 +72,7 @@ def get_last_trading_day_prices(
 
 @router.get("/data", response_model=GameDataResponse)
 async def get_game_data(
-    days: int = Query(30, ge=1, le=90, description="Number of calendar days"),
+    days: int = Query(30, ge=1, le=90, description="Number of calendar days (max 90)"),
     tickers: Optional[str] = Query(
         None,
         description="Comma-separated ticker symbols (default: AAPL,MSFT,GOOGL,AMZN)"
@@ -104,6 +107,11 @@ async def get_game_data(
                 status_code=400,
                 detail="Invalid start_date format. Use YYYY-MM-DD"
             )
+        if start_dt < MIN_START_DATE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"start_date must be on or after {MIN_START_DATE.isoformat()}"
+            )
     else:
         start_dt = None
 
@@ -128,6 +136,11 @@ async def get_game_data(
                 detail="No recommendation data available"
             )
         end_dt = latest_rec.as_of_date
+    if end_dt < MIN_START_DATE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insufficient data. Latest available date {end_dt.isoformat()} is before the minimum allowed start date {MIN_START_DATE.isoformat()}."
+        )
 
     # Calculate start date and days
     # If start_date is provided, use it and calculate days from start to end
@@ -139,9 +152,24 @@ async def get_game_data(
                 status_code=400,
                 detail=f"Date range must be between 1 and 90 days (got {days} days)"
             )
+        if start_dt > end_dt:
+            raise HTTPException(
+                status_code=400,
+                detail="start_date cannot be after end_date"
+            )
     else:
         # Calculate start date (N calendar days, not trading days)
         start_dt = end_dt - timedelta(days=days - 1)
+        if start_dt < MIN_START_DATE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Date range would start before the minimum allowed start date {MIN_START_DATE.isoformat()}. Reduce days or choose a later start_date."
+            )
+        if start_dt > end_dt:
+            raise HTTPException(
+                status_code=400,
+                detail="start_date cannot be after end_date"
+            )
 
     # Fetch all data from database
     db = next(get_db())
@@ -153,8 +181,9 @@ async def get_game_data(
         current_date = start_dt + timedelta(days=day_offset)
         is_trading = is_trading_day(current_date)
 
-        # Always fetch news for this day (even weekends may have news)
-        news_articles = (
+        # Fetch news: prioritize current day, then backfill with recent news
+        # This ensures at least 10 articles are available per ticker
+        current_day_news = (
             db.query(NewsArticleModel, NewsSentimentScore)
             .join(
                 NewsSentimentScore,
@@ -166,9 +195,32 @@ async def get_game_data(
                 func.date(NewsArticleModel.published_at) == current_date
             )
             .order_by(NewsArticleModel.published_at.desc())
-            .limit(10)
             .all()
         )
+
+        # If we have fewer than 10 articles for this day, backfill with recent news
+        news_articles = list(current_day_news)
+        if len(news_articles) < 10:
+            # Get recent news before this day (up to 10 total articles)
+            recent_news = (
+                db.query(NewsArticleModel, NewsSentimentScore)
+                .join(
+                    NewsSentimentScore,
+                    NewsArticleModel.id == NewsSentimentScore.article_id,
+                    isouter=True
+                )
+                .filter(
+                    NewsArticleModel.ticker.in_(ticker_list),
+                    NewsArticleModel.published_at < datetime.combine(
+                        current_date, datetime.min.time()
+                    )
+                )
+                .order_by(NewsArticleModel.published_at.desc())
+                .limit(10 - len(news_articles))
+                .all()
+            )
+            news_articles.extend(recent_news)
+
 
         if is_trading:
             # TRADING DAY: Get real recommendations and prices
@@ -267,13 +319,44 @@ async def get_game_data(
                 url=article.url
             ))
 
+        # Fetch technical indicators for this day
+        technical_indicators_dict = {}
+        tech_indicators = (
+            db.query(TechnicalIndicator)
+            .filter(
+                TechnicalIndicator.ticker.in_(ticker_list),
+                TechnicalIndicator.date == current_date
+            )
+            .all()
+        )
+
+        for indicator in tech_indicators:
+            technical_indicators_dict[indicator.ticker] = TechnicalIndicators(
+                sma_20=indicator.sma_20,
+                sma_50=indicator.sma_50,
+                sma_200=indicator.sma_200,
+                ema_12=indicator.ema_12,
+                ema_26=indicator.ema_26,
+                rsi_14=indicator.rsi_14,
+                macd=indicator.macd,
+                macd_signal=indicator.macd_signal,
+                macd_histogram=indicator.macd_histogram,
+                bollinger_upper=indicator.bollinger_upper,
+                bollinger_middle=indicator.bollinger_middle,
+                bollinger_lower=indicator.bollinger_lower,
+                atr_14=indicator.atr_14,
+                obv=indicator.obv,
+                volatility_30d=indicator.volatility_30d
+            )
+
         game_days.append(GameDayResponse(
             day=len(game_days),  # 0-indexed
             date=current_date.isoformat(),
             is_trading_day=is_trading,
             recommendations=recs,
             prices=price_dict,
-            news=news_list
+            news=news_list,
+            technical_indicators=technical_indicators_dict
         ))
 
     if len(game_days) < 10:  # Need at least 10 days for a meaningful game

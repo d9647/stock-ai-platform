@@ -8,13 +8,11 @@ import {
   getSignalColor,
 } from '@/lib/utils/format';
 import { cn } from '@/lib/utils/cn';
-import { BuyModal } from './buy-modal';
 
 export function AIRecommendations() {
   const { player, gameData } = useGameStore();
   const canBuy = useGameStore((state) => state.canBuy);
 
-  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
   const currentDayData = useMemo(() => {
@@ -25,9 +23,19 @@ export function AIRecommendations() {
   }, [gameData, player.currentDay]);
 
   if (!currentDayData) return null;
+  const recs = currentDayData.recommendations || [];
+  const tickers = gameData?.tickers || [];
+  const hasRecs = recs.length > 0;
+  const isWeekend = (() => {
+    const [year, month, dayNum] = currentDayData.date.split('-').map(Number);
+    const d = new Date(year, month - 1, dayNum);
+    return d.getDay() === 0 || d.getDay() === 6;
+  })();
 
   /* ---------------- Weekend ---------------- */
-  if (!currentDayData.is_trading_day) {
+  // Only treat as weekend if the calendar day is actually a weekend; otherwise
+  // allow rendering even if the backend flagged non-trading due to missing data.
+  if (isWeekend) {
     return (
       <div className="bg-layer2 border border-borderDark-subtle p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -53,15 +61,15 @@ export function AIRecommendations() {
           AI Recommendations
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {currentDayData.recommendations.map((rec) => {
-            const validation = canBuy(rec.ticker);
-            //const canBuyThis = validation.allowed;
-            // hardcode to allow to buy for all stocks 
-            const canBuyThis = true;
-            return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-1">
+          {(tickers.length ? tickers : recs.map((r) => r.ticker)).map((ticker) => {
+            const rec = recs.find((r) => r.ticker === ticker);
+            const validation = canBuy(ticker);
+            const canBuyThis = true; // keep buy enabled
+
+            return rec ? (
               <div
-                key={rec.ticker}
+                key={ticker}
                 className="bg-layer1 border border-borderDark-subtle p-4 flex flex-col gap-3"
               >
                 {/* Header */}
@@ -145,38 +153,30 @@ export function AIRecommendations() {
                     </div>
                   </div>
                 )}
-
-                {/* Buy button */}
-                <button
-                  onClick={() => setSelectedTicker(rec.ticker)}
-                  //disabled={!canBuyThis}
-                  className={cn(
-                    'mt-2 inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium border rounded-full leading-none transition-colors',
-                    canBuyThis
-                      ? 'btn-primary border-borderDark-subtle'
-                      : 'bg-layer1 text-text-muted border-borderDark-subtle cursor-not-allowed'
-                  )}
-                  title={canBuyThis ? 'Buy shares' : validation.reason}
-                >
-                  {canBuyThis ? 'Buy shares' : 'Unavailable'}
-                </button>
-                {!canBuyThis && (
-                  <div className="text-xs text-text-muted text-center">
-                    {validation.reason}
+              </div>
+            ) : (
+              <div
+                key={ticker}
+                className="bg-layer1 border border-borderDark-subtle p-4 flex flex-col gap-3"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-mono text-lg font-semibold text-text-primary">
+                      {ticker}
+                    </div>
+                    <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold bg-layer2 text-text-muted border border-borderDark-subtle">
+                      No AI recommendation
+                    </span>
                   </div>
-                )}
+                </div>
+                <div className="text-sm text-text-secondary">
+                  No AI analysis available for today. You can still trade using price charts.
+                </div>
               </div>
             );
           })}
         </div>
       </div>
-
-      {selectedTicker && (
-        <BuyModal
-          ticker={selectedTicker}
-          onClose={() => setSelectedTicker(null)}
-        />
-      )}
     </>
   );
 }

@@ -16,11 +16,20 @@ export function CreateRoom() {
     teacherName: '',
     roomName: '',
     numDays: 30,
-    initialCash: 10000,
-    difficulty: 'medium' as 'easy' | 'medium' | 'hard',
+    initialCash: 100000,
+    difficulty: 'easy' as 'easy' | 'medium' | 'hard',
     gameMode: 'sync_auto' as GameMode,
     dayDurationSeconds: 30,
+    startDate: '2025-01-01',
   });
+
+  const computeEndDate = () => {
+    const start = new Date(formData.startDate);
+    if (Number.isNaN(start.getTime())) return undefined;
+    const end = new Date(start);
+    end.setDate(start.getDate() + formData.numDays - 1);
+    return end.toISOString().slice(0, 10);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +43,11 @@ export function CreateRoom() {
         config: {
           num_days: formData.numDays,
           initial_cash: formData.initialCash,
-          tickers: ['AAPL'],
+          tickers: ['AAPL','MSFT','GOOGL','NVDA','AMZN','TSLA','META','WMT','MU','AVGO','TSM','JPM','BRK.A','INTC','AMD','QCOM','TXN','LRCX','KLAC','ASML','LLY','ORCL','V','PYPL','MA','JNJ','PLTR'],
           difficulty: formData.difficulty,
         },
+        start_date: formData.startDate,
+        end_date: computeEndDate(),
         game_mode: formData.gameMode,
         ...(formData.gameMode === 'sync_auto'
           ? { day_duration_seconds: formData.dayDurationSeconds }
@@ -69,7 +80,7 @@ export function CreateRoom() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-semibold text-text-primary mb-2">
-            Create Classroom
+            Create Room
           </h1>
           <p className="text-text-muted text-sm">
             Set up a game room for your students
@@ -118,15 +129,35 @@ export function CreateRoom() {
               }
               className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
               style={{ borderRadius: '0.375rem' }}
-              placeholder="Period 3 Economics"
-            />
-          </div>
+          placeholder="Period 3 Economics"
+        />
+      </div>
 
-          {/* Game Duration */}
-          <div>
-            <label className="block text-sm text-text-secondary mb-1">
-              Game Duration (Calendar Days)
-            </label>
+      {/* Start Date */}
+      <div>
+        <label className="block text-sm text-text-secondary mb-1">
+          Start Date (earliest 2025-01-01)
+        </label>
+        <input
+          type="date"
+          min="2025-01-01"
+          value={formData.startDate}
+          onChange={(e) =>
+            setFormData({ ...formData, startDate: e.target.value })
+          }
+          className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+          style={{ borderRadius: '0.375rem' }}
+        />
+        <p className="text-xs text-text-muted mt-1">
+          Start dates must be on or after 2025-01-01; latest depends on available data.
+        </p>
+      </div>
+
+      {/* Game Duration */}
+      <div>
+        <label className="block text-sm text-text-secondary mb-1">
+          Game Duration (Calendar Days)
+        </label>
             <select
               value={formData.numDays}
               onChange={(e) =>
@@ -158,10 +189,10 @@ export function CreateRoom() {
               className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
               style={{ borderRadius: '0.375rem' }}
             >
-              <option value={5000}>$5,000</option>
               <option value={10000}>$10,000</option>
-              <option value={25000}>$25,000</option>
+              <option value={20000}>$20,000</option>
               <option value={50000}>$50,000</option>
+              <option value={100000}>$100,000</option>
             </select>
           </div>
 

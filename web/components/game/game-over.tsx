@@ -315,37 +315,111 @@ const handleExportPDF = async () => {
             </div>
           </div>
 
-          {/* Performance */}
+        {/* Performance */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <PdfBox title="Your performance">
+            <PdfMetric label="Final portfolio value" value={formatCurrency(portfolioValue)} />
+            <PdfMetric
+              label="Total return"
+              value={`${playerReturn >= 0 ? '+' : ''}${formatPercent(playerReturn / 100)}`}
+            />
+            <PdfMetric label="Trades executed" value={player.trades.length.toString()} />
+          </PdfBox>
+
+          <PdfBox title="AI benchmark">
+            <PdfMetric label="AI portfolio value" value={formatCurrency(aiPortfolioValue)} />
+            <PdfMetric
+              label="AI return"
+              value={`${aiReturn >= 0 ? '+' : ''}${formatPercent(aiReturn / 100)}`}
+            />
+            <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700 }}>
+              {beatAI ? 'You outperformed the AI' : 'AI outperformed you'}
+            </div>
+            <div style={{ fontSize: 12, color: '#444' }}>
+              Difference: {formatPercent((playerReturn - aiReturn) / 100)}
+            </div>
+          </PdfBox>
+        </div>
+
+          {/* Trade History */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: 12,
               marginBottom: 16,
+              border: '1px solid #ddd',
+              padding: 12,
             }}
           >
-            <PdfBox title="Your performance">
-              <PdfMetric label="Final portfolio value" value={formatCurrency(portfolioValue)} />
-              <PdfMetric
-                label="Total return"
-                value={`${playerReturn >= 0 ? '+' : ''}${formatPercent(playerReturn / 100)}`}
-              />
-              <PdfMetric label="Trades executed" value={player.trades.length.toString()} />
-            </PdfBox>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+                Your trades (last 10)
+              </div>
+              {player.trades.slice(-10).length === 0 && (
+                <div style={{ fontSize: 12, color: '#555' }}>No trades</div>
+              )}
+              {player.trades
+                .slice(-10)
+                .reverse()
+                .map((t) => (
+                  <div
+                    key={t.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: 12,
+                      padding: '4px 0',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                  >
+                    <span>
+                      Day {t.day + 1} · {t.ticker} · {t.type}
+                    </span>
+                    <span>
+                      {t.shares} @ ${t.price.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+            </div>
 
-            <PdfBox title="AI benchmark">
-              <PdfMetric label="AI portfolio value" value={formatCurrency(aiPortfolioValue)} />
-              <PdfMetric
-                label="AI return"
-                value={`${aiReturn >= 0 ? '+' : ''}${formatPercent(aiReturn / 100)}`}
-              />
-              <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700 }}>
-                {beatAI ? 'You outperformed the AI' : 'AI outperformed you'}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+                AI trades (last 10)
               </div>
-              <div style={{ fontSize: 12, color: '#444' }}>
-                Difference: {formatPercent((playerReturn - aiReturn) / 100)}
-              </div>
-            </PdfBox>
+              {ai.trades.slice(-10).length === 0 && (
+                <div style={{ fontSize: 12, color: '#555' }}>No AI trades</div>
+              )}
+              {ai.trades
+                .slice(-10)
+                .reverse()
+                .map((t) => (
+                  <div
+                    key={t.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: 12,
+                      padding: '4px 0',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                  >
+                    <span>
+                      Day {t.day + 1} · {t.ticker} · {t.type}
+                    </span>
+                    <span>
+                      {t.shares} @ ${t.price.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+            </div>
           </div>
 
           {/* Score Breakdown */}

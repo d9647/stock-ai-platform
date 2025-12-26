@@ -307,11 +307,29 @@ See [TESTING.md](TESTING.md) for comprehensive testing guide.
 
 ## 📖 Documentation
 
-- [Architecture Overview](docs/architecture/overview.md)
-- [Database Schema](docs/architecture/database-schema.md)
-- [Agent Design](docs/architecture/agents.md)
-- [API Reference](docs/api-reference.md)
-- [ADR (Architecture Decision Records)](docs/adr/)
+### Quick Start
+- [START_HERE.md](START_HERE.md) - Quick start guide for new developers
+
+### Milestone Documentation
+- **[MILESTONE_1_COMPLETE.md](MILESTONE_1_COMPLETE.md)** - Complete milestone 1 summary with all phases
+- [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Technical architecture overview
+
+### Phase Documentation
+- [PHASE_1_COMPLETE.md](PHASE_1_COMPLETE.md) - Foundation: Infrastructure, market data, technical indicators
+- [PHASE_2_COMPLETE.md](PHASE_2_COMPLETE.md) - News sentiment & feature store
+- [PHASE_3_COMPLETE.md](PHASE_3_COMPLETE.md) - AI agents with LangGraph (82.69% test coverage)
+- [PHASE_4_COMPLETE.md](PHASE_4_COMPLETE.md) - Educational game platform with multiplayer
+
+### Implementation Guides
+- [GAME_IMPLEMENTATION.md](GAME_IMPLEMENTATION.md) - Complete game design documentation (450+ lines)
+- [IMPLEMENTATION_CHANGELOG.md](IMPLEMENTATION_CHANGELOG.md) - All bug fixes and enhancements
+- [TESTING.md](TESTING.md) - Testing guide
+- [POPULATE_DATABASE.md](POPULATE_DATABASE.md) - Database population guide
+- [MULTIPLAYER_IMPLEMENTATION.md](MULTIPLAYER_IMPLEMENTATION.md) - Multiplayer classroom mode
+
+### Frontend Documentation
+- [web/README.md](web/README.md) - Frontend architecture and setup
+- [web/SETUP.md](web/SETUP.md) - Web installation instructions
 
 ---
 
@@ -354,9 +372,10 @@ See [TESTING.md](TESTING.md) for comprehensive testing guide.
 - [x] Complete game loop (lobby → play → game over)
 - [x] 11 game UI components
 - [x] Game data API endpoint
+- [x] Dark theme with technical signals panel
+- [x] Multiplayer rooms (teacher/student)
+- [x] Live leaderboards for classroom competition
 - [x] Comprehensive documentation ([GAME_IMPLEMENTATION.md](GAME_IMPLEMENTATION.md))
-- [ ] Multiplayer rooms (teacher/student)
-- [ ] Leaderboards for classroom competition
 - [ ] Trade history visualization
 - [ ] Portfolio performance charts
 

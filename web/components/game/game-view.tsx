@@ -9,7 +9,9 @@ import { PlayerHoldings } from './player-holdings';
 import { AdvanceDayButton } from './advance-day-button';
 import { StockChart } from './stock-chart';
 import { NewsPanel } from './news-panel';
+import { TechnicalSignals } from './technical-signals';
 import { SyncBanner } from './sync-banner';
+import { AITradeLog } from './ai-trade-log';
 import { SyncStateManager } from './sync-state-manager';
 import { TeacherGameControls } from './teacher-game-controls';
 import { getRoom, type RoomResponse } from '@/lib/api/multiplayer';
@@ -83,22 +85,6 @@ export function GameView() {
           />
         )}
 
-      {isMultiplayer && roomCode && room?.game_mode === 'async' && (
-        <div className="border-b border-borderDark-subtle bg-layer1 py-2 text-center">
-          <div className="container mx-auto flex items-center justify-center gap-4 text-sm">
-            <span className="text-text-muted">
-              Multiplayer Room: <span className="font-mono">{roomCode}</span>
-            </span>
-            <a
-              href={`/multiplayer/leaderboard/${roomCode}`}
-              className="text-accent hover:underline"
-            >
-              View Leaderboard →
-            </a>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -138,19 +124,29 @@ export function GameView() {
           <div className="lg:col-span-1">
             <div className="sticky top-20 space-y-6">
               {/* Advance Day */}
-              {(!isMultiplayer || room?.game_mode === 'async') && (
+              {/*(!isMultiplayer || room?.game_mode === 'async') && (
                 <AdvanceDayButton />
               )}
 
               {/* Weekend Notice */}
-              {!currentDayData.is_trading_day && (
+              {/*!currentDayData.is_trading_day && (
                 <div className="bg-layer2 border border-borderDark-subtle px-4 py-3 text-sm text-text-muted text-center">
                   Markets closed — Weekend
                 </div>
-              )}
+              )*/}
+
+              {/* Technical Signals */}
+              <TechnicalSignals
+                ticker={selectedTicker}
+                technicalData={currentDayData.technical_indicators?.[selectedTicker]}
+                currentPrice={currentDayData.prices[selectedTicker]?.close || 0}
+              />
 
               {/* News */}
-              <NewsPanel />
+              <NewsPanel selectedTicker={selectedTicker} />
+
+              {/* AI Trade Log */}
+              <AITradeLog />
             </div>
           </div>
         </div>

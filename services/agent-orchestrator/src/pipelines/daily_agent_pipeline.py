@@ -24,11 +24,12 @@ class DailyAgentPipeline:
     3. Write outputs to database
     """
 
-    def __init__(self, database_url: str = None):
+    def __init__(self, database_url: str = None, skip_existing: bool = True):
         self.database_url = database_url or config.DATABASE_URL
         self.agent_graph = build_agent_graph()
         self.reader = FeatureSnapshotReader(database_url)
         self.writer = AgentOutputWriter(database_url)
+        self.skip_existing = skip_existing
 
         logger.info("Initialized daily agent pipeline")
 
@@ -60,6 +61,12 @@ class DailyAgentPipeline:
         }
 
         try:
+            # Skip if already processed (existing recommendation)
+            if self.skip_existing and self.writer.recommendation_exists(ticker, as_of_date):
+                logger.info(f"Skipping {ticker} {as_of_date}: recommendation already exists")
+                result["status"] = "skipped"
+                return result
+
             # Step 1: Fetch feature snapshot
             snapshot = self.reader.get_snapshot(ticker, as_of_date)
 
@@ -138,6 +145,7 @@ class DailyAgentPipeline:
                 rec: sum(1 for r in results if r.get("recommendation") == rec)
                 for rec in ["STRONG_BUY", "BUY", "HOLD", "SELL", "STRONG_SELL"]
             },
+            "skipped": sum(1 for r in results if r["status"] == "skipped"),
             "results": results
         }
 
@@ -146,7 +154,8 @@ class DailyAgentPipeline:
             f"AGENT PIPELINE COMPLETE\n"
             f"{'='*60}\n"
             f"Date: {as_of_date}\n"
-            f"Tickers: {summary['successful']}/{summary['total_tickers']} successful\n"
+            f"Tickers: {summary['successful']}/{summary['total_tickers']} successful "
+            f"({summary['skipped']} skipped)\n"
             f"Recommendations: {summary['recommendations']}\n"
             f"{'='*60}"
         )
@@ -270,7 +279,7 @@ if __name__ == "__main__":
             print("AGENT PIPELINE RESULTS")
             print("="*60)
             print(f"Date: {summary['date']}")
-            print(f"Successful: {summary['successful']}/{summary['total_tickers']}")
+            print(f"Successful: {summary['successful']}/{summary['total_tickers']} (skipped {summary['skipped']})")
             print(f"\nRecommendations:")
             for rec, count in summary['recommendations'].items():
                 if count > 0:

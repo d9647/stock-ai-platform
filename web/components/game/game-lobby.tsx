@@ -8,9 +8,10 @@ interface GameLobbyProps {
   onStart: () => void;
   gameConfig: {
     days: number;
+    startDate?: string;
     tickers: string[];
   };
-  onConfigChange: (config: { days: number; tickers: string[] }) => void;
+  onConfigChange: (config: { days: number; startDate?: string; tickers: string[] }) => void;
 }
 
 export function GameLobby({
@@ -24,10 +25,11 @@ export function GameLobby({
 
   const handleStartGame = () => {
     startGame({
-      initialCash: 10000,
+      initialCash: 100000,
       numDays: gameConfig.days,
       tickers: gameConfig.tickers,
       difficulty: 'medium',
+      startDate: gameConfig.startDate,
     });
     onStart();
   };
@@ -51,7 +53,7 @@ export function GameLobby({
             How this simulation works
           </h2>
           <ul className="space-y-2 text-sm text-text-secondary">
-            <li>• You start with <strong className="text-text-primary">$10,000</strong> in virtual cash</li>
+            <li>• You start with <strong className="text-text-primary">$100,000</strong> in virtual cash</li>
             <li>• Each day, the AI provides market analysis and recommendations</li>
             <li>• You may buy only when the AI signals BUY or STRONG BUY</li>
             <li>• You choose when to sell based on your own judgment</li>
@@ -77,7 +79,7 @@ export function GameLobby({
               <input
                 type="range"
                 min="10"
-                max="60"
+                max="90"
                 step="10"
                 value={gameConfig.days}
                 onChange={(e) =>
@@ -92,7 +94,30 @@ export function GameLobby({
                 <span>10</span>
                 <span>30</span>
                 <span>60</span>
+                <span>90</span>
               </div>
+            </div>
+
+            {/* Start Date */}
+            <div>
+              <label className="block text-xs text-text-muted mb-2">
+                Start Date (earliest 2025-01-01)
+              </label>
+              <input
+                type="date"
+                min="2025-01-01"
+                value={gameConfig.startDate || '2025-01-01'}
+                onChange={(e) =>
+                  onConfigChange({
+                    ...gameConfig,
+                    startDate: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+              />
+              <p className="text-xs text-text-muted mt-1">
+                Latest start depends on available data; choose any date on or after 2025-01-01.
+              </p>
             </div>
 
             {/* Tickers */}
@@ -132,7 +157,7 @@ export function GameLobby({
           disabled={isLoading || !!error}
           className="w-full btn-primary py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
         >
-          {isLoading ? 'Preparing simulation…' : 'Start simulation'}
+          {isLoading ? 'Preparing simulation…' : 'Let\'s play!'}
         </button>
 
         {/* Footer */}

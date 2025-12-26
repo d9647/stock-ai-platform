@@ -83,6 +83,7 @@ services/*/data/
 backtesting/outputs/
 api/migrations/versions/*.py
 !api/migrations/versions/.gitkeep
+scripts/run-*
 
 # Parquet files (large data files)
 *.parquet

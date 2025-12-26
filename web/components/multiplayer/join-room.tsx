@@ -66,7 +66,7 @@ export function JoinRoom() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-semibold text-text-primary mb-1">
-            Join classroom
+            Join Room
           </h1>
           <p className="text-sm text-text-muted">
             Enter the room code shared by your teacher.
@@ -100,7 +100,7 @@ export function JoinRoom() {
               placeholder="ABC123"
             />
             <p className="text-xs text-text-muted mt-1">
-              6-character classroom code
+              6-character room code
             </p>
           </div>
 
@@ -158,7 +158,7 @@ export function JoinRoom() {
             onClick={() => router.push('/multiplayer/create')}
             className="text-sm text-accent font-medium"
           >
-            Create a classroom →
+            Create a room →
           </button>
         </div>
       </div>

@@ -36,10 +36,13 @@ class DailyNewsSentimentPipeline:
         self.scorer = SentimentScorer()
         self.aggregator = SentimentAggregator()
         self.writer = NewsDataWriter()
-        self.cache = NewsSeenCache(
-            Path(__file__).resolve().parents[2] / "ingestion" / "data" / "news_cache" / "news_seen.jsonl"
-        )
-        self.existing_urls, self.existing_keys = self.cache.load()
+        # Use src/ingestion/data/news_cache relative to this file
+        cache_dir = Path(__file__).resolve().parents[1] / "ingestion" / "data" / "news_cache"
+        self.cache_dir = cache_dir
+        # Cache will be initialized per-ticker inside run_for_ticker
+        self.cache = None
+        self.existing_urls = set()
+        self.existing_keys = set()
 
         logger.info("Initialized daily news sentiment pipeline")
 
@@ -47,7 +50,9 @@ class DailyNewsSentimentPipeline:
         self,
         ticker: str,
         start_date: datetime = None,
-        end_date: datetime = None
+        end_date: datetime = None,
+        skip_sentiment: bool = False,
+        forward_only: bool = False,
     ) -> dict:
         """
         Run complete pipeline for a single ticker.
@@ -69,18 +74,76 @@ class DailyNewsSentimentPipeline:
         logger.info(f"Running pipeline for {ticker} from {start_date.date()} to {end_date.date()}")
 
         try:
-            # Step 1: Fetch news articles
-            logger.info(f"[{ticker}] Step 1: Fetching news articles...")
-            articles_df = self.fetcher.fetch_historical_news(
-                ticker,
-                start_date,
-                end_date,
-                existing_urls=self.existing_urls,
-                existing_keys=self.existing_keys,
-            )
+            # Initialize ticker-specific cache
+            self.cache = NewsSeenCache(self.cache_dir, ticker)
+            self.existing_urls, self.existing_keys = self.cache.load()
 
-            if articles_df.empty:
-                logger.warning(f"[{ticker}] No news articles found")
+            # Load existing article keys from DB to avoid reprocessing
+            logger.info(f"[{ticker}] Loading existing article keys from DB...")
+            existing_article_mapping = self.writer.get_article_ids_for_ticker(ticker)
+            scored_article_mapping = self.writer.get_scored_article_keys_for_ticker(ticker)
+            def _norm_db_ts(ts):
+                ts = pd.to_datetime(ts)
+                if ts.tzinfo is None:
+                    ts = ts.tz_localize('UTC')
+                else:
+                    ts = ts.tz_convert('UTC')
+                return ts
+
+            existing_article_keys_db = {
+                (ticker_db, headline, _norm_db_ts(published_at))
+                for (ticker_db, published_at, headline) in existing_article_mapping.keys()
+            }
+            scored_article_keys_db = {
+                (ticker_db, headline, _norm_db_ts(published_at))
+                for (ticker_db, published_at, headline) in scored_article_mapping.keys()
+            }
+
+            # For fetch: skip cache + already scored keys to reduce downloads
+            combined_existing_keys_for_fetch = set(self.existing_keys) | scored_article_keys_db
+            # For insert: skip cache + anything already in DB
+            combined_existing_keys_for_insert = set(self.existing_keys) | existing_article_keys_db
+
+            # Determine fetch ranges, avoiding already-covered dates in DB
+            earliest_date_db, latest_date_db = self.writer.get_article_date_bounds(ticker)
+            fetch_ranges = []
+            if earliest_date_db is None or latest_date_db is None:
+                fetch_ranges.append((start_date, end_date))
+            else:
+                if forward_only and latest_date_db:
+                    # Only fetch forward from the latest known date
+                    forward_start = max(start_date, datetime.combine(latest_date_db, datetime.min.time()) + timedelta(days=1))
+                    if forward_start <= end_date:
+                        fetch_ranges.append((forward_start, end_date))
+                else:
+                    # Older gap (before earliest in DB)
+                    if start_date.date() < earliest_date_db:
+                        fetch_ranges.append(
+                            (start_date, min(end_date, datetime.combine(earliest_date_db, datetime.min.time()) - timedelta(days=1)))
+                        )
+                    # Newer gap (after latest in DB)
+                    if end_date.date() > latest_date_db:
+                        fetch_ranges.append(
+                            (max(start_date, datetime.combine(latest_date_db, datetime.min.time()) + timedelta(days=1)), end_date)
+                        )
+
+            all_articles = []
+            for fetch_start, fetch_end in fetch_ranges:
+                logger.info(f"[{ticker}] Step 1: Fetching news articles ({fetch_start.date()} to {fetch_end.date()})...")
+                articles_df = self.fetcher.fetch_historical_news(
+                    ticker,
+                    fetch_start,
+                    fetch_end,
+                    existing_urls=self.existing_urls,
+                    existing_keys=combined_existing_keys_for_fetch,
+                )
+                if not articles_df.empty:
+                    all_articles.append(articles_df)
+
+            if all_articles:
+                articles_df = pd.concat(all_articles, ignore_index=True)
+            else:
+                logger.warning(f"[{ticker}] No news articles found in requested gaps")
                 return {
                     "ticker": ticker,
                     "status": "no_data",
@@ -88,6 +151,7 @@ class DailyNewsSentimentPipeline:
                     "sentiments": 0,
                     "aggregates": 0
                 }
+
 
             # Filter to brand-new articles (defensive: in case cache missed some)
             def _normalize_ts(ts):
@@ -102,24 +166,14 @@ class DailyNewsSentimentPipeline:
                 url = str(row.get("url") or "")
                 headline = str(row.get("headline") or "")
                 ts = _normalize_ts(row.get("published_at"))
-                if url and url in self.existing_urls:
+                if url and (ticker, url) in self.existing_urls:
                     return False
-                if headline and (headline, ts) in self.existing_keys:
+                if headline and (ticker, headline, ts) in combined_existing_keys_for_insert:
                     return False
                 return True
 
             new_mask = articles_df.apply(_is_new, axis=1)
             new_articles_df = articles_df[new_mask].copy()
-
-            if new_articles_df.empty:
-                logger.info(f"[{ticker}] All fetched articles already processed; skipping.")
-                return {
-                    "ticker": ticker,
-                    "status": "no_new_articles",
-                    "articles": 0,
-                    "sentiments": 0,
-                    "aggregates": 0,
-                }
 
             # Step 2: Write raw articles to database
             logger.info(f"[{ticker}] Step 2: Writing articles to database...")
@@ -131,27 +185,58 @@ class DailyNewsSentimentPipeline:
                     published_at = _normalize_ts(row["published_at"])
                     new_articles.append(
                         {
+                            "ticker": ticker,
                             "url": row.get("url"),
                             "headline": row.get("headline"),
                             "published_at": published_at,
                         }
                     )
                     if row.get("url"):
-                        self.existing_urls.add(str(row.get("url")))
+                        self.existing_urls.add((ticker, str(row.get("url"))))
                     if row.get("headline") and published_at:
-                        self.existing_keys.add((row.get("headline"), published_at))
+                        self.existing_keys.add((ticker, row.get("headline"), published_at))
 
                 self.cache.append(new_articles)
 
+            # Optionally skip sentiment/aggregation
+            if skip_sentiment:
+                logger.info(f"[{ticker}] Skipping sentiment/aggregation per flag.")
+                return {
+                    "ticker": ticker,
+                    "status": "success_no_sentiment",
+                    "articles": article_count,
+                    "sentiments": 0,
+                    "aggregates": 0,
+                    "date_range": f"{start_date.date()} to {end_date.date()}",
+                }
+
             # Step 3: Analyze sentiment (OpenAI)
             logger.info(f"[{ticker}] Step 3: Analyzing sentiment with OpenAI...")
-            sentiment_df = self.scorer.analyze_sentiment_batch(new_articles_df)
+            # Sentiment input: fetched articles that are not already scored
+            def _needs_sentiment(row):
+                headline = str(row.get("headline") or "")
+                ts = _normalize_ts(row.get("published_at"))
+                return (ticker, headline, ts) not in scored_article_keys_db
+
+            sentiment_input_df = articles_df[articles_df.apply(_needs_sentiment, axis=1)].copy()
+
+            if sentiment_input_df.empty:
+                logger.info(f"[{ticker}] All fetched articles already scored; skipping sentiment.")
+                return {
+                    "ticker": ticker,
+                    "status": "no_new_sentiment",
+                    "articles": article_count,
+                    "sentiments": 0,
+                    "aggregates": 0,
+                }
+
+            sentiment_df = self.scorer.analyze_sentiment_batch(sentiment_input_df)
 
             # Ensure published_at is timezone-aware for matching
             if sentiment_df["published_at"].dt.tz is None:
                 sentiment_df["published_at"] = sentiment_df["published_at"].dt.tz_localize('UTC')
 
-            # Step 4: Retrieve article IDs for sentiment linking
+            # Step 4: Retrieve article IDs for sentiment linking (refresh after inserts)
             logger.info(f"[{ticker}] Step 4: Linking sentiment to articles...")
             article_id_mapping = self.writer.get_article_ids_for_ticker(ticker)
 
@@ -227,7 +312,9 @@ class DailyNewsSentimentPipeline:
         self,
         tickers: list = None,
         start_date: datetime = None,
-        end_date: datetime = None
+        end_date: datetime = None,
+        skip_sentiment: bool = False,
+        forward_only: bool = False
     ) -> list:
         """
         Run pipeline for multiple tickers.
@@ -247,7 +334,13 @@ class DailyNewsSentimentPipeline:
 
         results = []
         for i, ticker in enumerate(tickers):
-            result = self.run_for_ticker(ticker, start_date, end_date)
+            result = self.run_for_ticker(
+                ticker,
+                start_date,
+                end_date,
+                skip_sentiment=skip_sentiment,
+                forward_only=forward_only,
+            )
             results.append(result)
 
             # Rate limiting for NewsAPI and Finnhub
@@ -291,10 +384,25 @@ def main():
         help="Single ticker to process (or omit for all default tickers)"
     )
     parser.add_argument(
+        "--tickers",
+        nargs="+",
+        help="Multiple tickers to process (space separated)"
+    )
+    parser.add_argument(
         "--days",
         type=int,
         default=config.HISTORICAL_DAYS,
         help="Number of days of historical data to fetch"
+    )
+    parser.add_argument(
+        "--skip-sentiment",
+        action="store_true",
+        help="Fetch and store news only (skip sentiment scoring and aggregation)"
+    )
+    parser.add_argument(
+        "--forward-only",
+        action="store_true",
+        help="Only fetch dates after the latest article in DB (skip older gaps)"
     )
 
     args = parser.parse_args()
@@ -307,15 +415,25 @@ def main():
     pipeline = DailyNewsSentimentPipeline()
 
     try:
-        if args.ticker:
-            # Single ticker
-            result = pipeline.run_for_ticker(args.ticker, start_date, end_date)
-            print(f"\nResult: {result}")
+        tickers = args.tickers or ([args.ticker] if args.ticker else None)
+
+        if tickers:
+            results = pipeline.run_for_multiple_tickers(
+                tickers=tickers,
+                start_date=start_date,
+                end_date=end_date,
+                skip_sentiment=args.skip_sentiment,
+                forward_only=args.forward_only
+            )
+            print(f"\nResults:")
+            for r in results:
+                print(f"  {r}")
         else:
-            # Multiple tickers
             results = pipeline.run_for_multiple_tickers(
                 start_date=start_date,
-                end_date=end_date
+                end_date=end_date,
+                skip_sentiment=args.skip_sentiment,
+                forward_only=args.forward_only
             )
             print(f"\nResults:")
             for r in results:
