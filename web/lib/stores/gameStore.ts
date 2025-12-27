@@ -9,6 +9,7 @@ import type {
   GameState,
   GameConfig,
   GameData,
+  GameDay,
   PlayerState,
   AIState,
   Trade,
