@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # CORS - Allow frontend origins
     CORS_ORIGINS: list = [
         "http://localhost:3000",  # Local development
-        "https://stock-ai-platform-theta.vercel.app/game",  # Production frontend
+        "https://stock-ai-platform-theta.vercel.app",  # Production frontend
     ]
 
     # Logging
