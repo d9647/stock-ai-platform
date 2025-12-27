@@ -186,7 +186,15 @@ export interface PlayerState {
  */
 export interface AIState {
   cash: number;
-  holdings: Record<string, { shares: number; avgCost: number }>;
+  holdings: Record<string, {
+    ticker: string;
+    shares: number;
+    avgCost: number;
+    totalCost: number;
+    currentValue: number;
+    unrealizedPnL: number;
+    unrealizedPnLPercent: number;
+  }>;
   trades: Trade[];
   portfolioHistory: PortfolioSnapshot[];
 }
