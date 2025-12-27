@@ -126,21 +126,23 @@ export function TeacherDashboard({
           </p>
         </div>
 
-        <a
-          href={`/multiplayer/leaderboard/${room.room_code}`}
-          className="text-xs text-accent hover:underline"
-        >
-          View leaderboard
-        </a>
-
-        {roomState && room.game_mode === 'sync' && (
-          <div className="text-right">
-            <div className="text-xs text-text-muted">Ready</div>
-            <div className="text-lg font-semibold text-text-primary">
-              {roomState.ready_count} / {roomState.total_players}
+        <div className="flex items-center gap-6">
+          {roomState && room.game_mode === 'sync' && (
+            <div className="text-right">
+              <div className="text-xs text-text-muted">Ready</div>
+              <div className="text-lg font-semibold text-text-primary">
+                {roomState.ready_count} / {roomState.total_players}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          <a
+            href={`/multiplayer/leaderboard/${room.room_code}`}
+            className="text-xs text-accent hover:underline whitespace-nowrap"
+          >
+            View leaderboard
+          </a>
+        </div>
       </div>
 
       {/* Error */}
