@@ -21,7 +21,7 @@ export function TopPicks() {
       <div className="text-center py-12">
         <p className="text-red-600">Error loading recommendations: {error.message}</p>
         <p className="text-sm text-gray-600 mt-2">
-          Make sure the API server is running at http://192.168.5.126:8000
+          Make sure the API server is running at http://localhost:8000
         </p>
       </div>
     );

@@ -1,49 +1,92 @@
-modules = ["nodejs-20", "bash", "web", "python-3.11", "postgresql-16"]
-[agent]
-expertMode = true
+# Stock AI Platform - Replit Configuration
+# Backend API deployment configuration
+
+modules = ["python-3.11", "postgresql-16"]
 
 [nix]
-channel = "stable-25_05"
-packages = ["cargo", "libiconv", "libxcrypt", "openssl", "pkg-config", "rustc"]
+channel = "stable-23_11"
 
-[workflows]
-runButton = "Project"
+# Main run command (for development in Replit)
+run = "cd api && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+entrypoint = "api/app/main.py"
 
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
+# Hidden files in Replit editor
+hidden = [".pythonlibs", "venv", ".pytest_cache", "__pycache__", ".git", "node_modules"]
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "API Server"
+# Production deployment configuration
+[deployment]
+run = ["sh", "-c", "cd api && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+deploymentTarget = "cloudrun"
+ignorePorts = false
 
-[[workflows.workflow]]
-name = "API Server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd api && python -m uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
+# Port configuration
 [[ports]]
-localPort = 5000
+localPort = 8000
 externalPort = 80
 
+<<<<<<< HEAD
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "cd api && python -m uvicorn app.main:app --host 0.0.0.0 --port 5000"]
 build = ["bash", "-c", "cd web && npm run build"]
+=======
+# Environment variables (set actual values in Replit Secrets)
+[env]
+PYTHONPATH = "${REPL_HOME}/api"
+PYTHONUNBUFFERED = "1"
+PORT = "8000"
+ENVIRONMENT = "production"
+>>>>>>> 67ed315b635681a318e0374e9cf78640394aa767
 
-[userenv]
+# Python language configuration
+[languages.python3]
+pattern = "**/*.py"
 
-[userenv.shared]
-ENVIRONMENT = "development"
-LOG_LEVEL = "INFO"
-API_PORT = "8000"
-WEB_PORT = "3000"
-ACCESS_TOKEN_EXPIRE_MINUTES = "30"
+[languages.python3.languageServer]
+start = "pylsp"
+
+# Package management
+[packager]
+language = "python3"
+ignoredPackages = ["unit_tests"]
+
+[packager.features]
+enabledForHosting = false
+packageSearch = true
+guessImports = true
+
+# Debugger support
+[debugger]
+support = true
+
+[debugger.interactive]
+transport = "localhost:0"
+startCommand = ["dap-python", "api/app/main.py"]
+
+[debugger.interactive.integratedAdapter]
+dapTcpAddress = "localhost:0"
+
+[debugger.interactive.initializeMessage]
+command = "initialize"
+type = "request"
+
+[debugger.interactive.initializeMessage.arguments]
+adapterID = "debugpy"
+clientID = "replit"
+clientName = "replit.com"
+columnsStartAt1 = true
+linesStartAt1 = true
+locale = "en-us"
+pathFormat = "path"
+supportsInvalidatedEvent = true
+supportsProgressReporting = true
+supportsRunInTerminalRequest = true
+supportsVariablePaging = true
+supportsVariableType = true
+
+[debugger.interactive.launchMessage]
+command = "attach"
+type = "request"
+
+[debugger.interactive.launchMessage.arguments]
+logging = {}

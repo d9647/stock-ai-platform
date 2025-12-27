@@ -37,9 +37,9 @@ start:
 	@echo "✓ Infrastructure started"
 	@echo ""
 	@echo "Services running:"
-	@echo "  PostgreSQL: 192.168.5.126:5432"
-	@echo "  Redis: 192.168.5.126:6379"
-	@echo "  pgAdmin: http://192.168.5.126:5050"
+	@echo "  PostgreSQL: localhost:5432"
+	@echo "  Redis: localhost:6379"
+	@echo "  pgAdmin: http://localhost:5050"
 
 stop:
 	@echo "Stopping services..."
@@ -74,8 +74,8 @@ install-market:
 
 api:
 	@echo "Starting API server..."
-	@echo "API will be available at http://192.168.5.126:8000"
-	@echo "Docs available at http://192.168.5.126:8000/docs"
+	@echo "API will be available at http://localhost:8000"
+	@echo "Docs available at http://localhost:8000/docs"
 	@echo ""
 	cd api && . venv/bin/activate && python -m app.main
 

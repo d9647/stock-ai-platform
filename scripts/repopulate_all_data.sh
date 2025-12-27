@@ -72,12 +72,12 @@ TICKER_ARRAY=(AAPL MSFT GOOGL AMZN NVDA META TSLA)
 
 for ticker in "${TICKER_ARRAY[@]}"; do
     echo -e "${YELLOW}  Clearing ${ticker}...${NC}"
-    psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "DELETE FROM market_data.ohlcv_prices WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
-    psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "DELETE FROM market_data.technical_indicators WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
-    psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "DELETE FROM news.news_articles WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
-    psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "DELETE FROM news.news_sentiment_aggregates WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
-    psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "DELETE FROM features.feature_snapshots WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
-    psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "DELETE FROM agent.recommendations WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
+    psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "DELETE FROM market_data.ohlcv_prices WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
+    psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "DELETE FROM market_data.technical_indicators WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
+    psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "DELETE FROM news.news_articles WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
+    psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "DELETE FROM news.news_sentiment_aggregates WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
+    psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "DELETE FROM features.feature_snapshots WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
+    psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "DELETE FROM agent.recommendations WHERE ticker = '${ticker}';" 2>&1 | grep -v "DELETE" || true
 done
 
 echo -e "${GREEN}✓ Data cleared${NC}"
@@ -227,7 +227,7 @@ echo -e "${YELLOW}Checking database contents...${NC}"
 echo ""
 
 echo "Market Data (OHLCV):"
-psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
+psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "
     SELECT ticker, COUNT(*) as days
     FROM market_data.ohlcv_prices
     WHERE ticker IN ('AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA')
@@ -237,7 +237,7 @@ psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
 
 echo ""
 echo "Technical Indicators:"
-psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
+psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "
     SELECT ticker, COUNT(*) as days
     FROM market_data.technical_indicators
     WHERE ticker IN ('AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA')
@@ -247,7 +247,7 @@ psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
 
 echo ""
 echo "News Articles:"
-psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
+psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "
     SELECT ticker, COUNT(*) as articles
     FROM news.news_articles
     WHERE ticker IN ('AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA')
@@ -257,7 +257,7 @@ psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
 
 echo ""
 echo "News Sentiment Aggregates:"
-psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
+psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "
     SELECT ticker, COUNT(*) as days
     FROM news.news_sentiment_aggregates
     WHERE ticker IN ('AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA')
@@ -267,7 +267,7 @@ psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
 
 echo ""
 echo "Feature Snapshots:"
-psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
+psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "
     SELECT ticker, COUNT(*) as snapshots
     FROM features.feature_snapshots
     WHERE ticker IN ('AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA')
@@ -277,7 +277,7 @@ psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
 
 echo ""
 echo "AI Recommendations:"
-psql postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev -c "
+psql postgresql://stockai:stockai@localhost:5432/stockai_dev -c "
     SELECT ticker, COUNT(*) as recommendations
     FROM agent.recommendations
     WHERE ticker IN ('AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA')
