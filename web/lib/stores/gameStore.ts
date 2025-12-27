@@ -772,7 +772,7 @@ function applyAITrades(
       updatedAI.cash += trade.total;
       const remainingShares = existing.shares - trade.shares;
       if (remainingShares === 0) {
-        const { [trade.ticker]: _, ...rest } = updatedAI.holdings;
+        const { [trade.ticker]: _removed, ...rest } = updatedAI.holdings;
         updatedAI.holdings = rest;
       } else {
         const remainingCost = existing.avgCost * remainingShares;
