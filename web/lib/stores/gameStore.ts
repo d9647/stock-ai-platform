@@ -422,7 +422,7 @@ export const useGameStore = create<GameStore>()(
 
         if (newShares === 0) {
           // Remove holding entirely
-          const { [ticker]: _, ...remainingHoldings } = player.holdings;
+          const { [ticker]: _removed, ...remainingHoldings } = player.holdings;
           set({
             player: {
               ...player,
@@ -658,8 +658,8 @@ function calculateMaxDrawdown(history: PortfolioSnapshot[]): number {
 // Helper: Execute AI trades automatically
 function executeAITrades(
   ai: AIState,
-  dayData: any,
-  config: GameConfig
+  dayData: GameDay,
+  _config: GameConfig
 ): Trade[] {
   const trades: Trade[] = [];
 
