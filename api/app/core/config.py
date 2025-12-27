@@ -43,7 +43,6 @@ class Settings(BaseSettings):
         "http://localhost:3000",  # Local development
         "https://stock-ai-platform-ejv3n8mn0-d9647s-projects.vercel.app",  # Vercel preview deployments
         "https://stock-ai-platform-1yg3xjd7s-d9647s-projects.vercel.app",
-        os.getenv("FRONTEND_URL", ""),  # Custom frontend URL from secrets
     ]
 
     # Logging
