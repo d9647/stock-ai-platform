@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import date, datetime, timedelta
+from loguru import logger
 
 from ..db import get_db
 from ..models.multiplayer import GameRoom, Player
@@ -256,9 +257,14 @@ async def update_player_state(
     if request.ai_portfolio_value is not None and request.ai_total_return_pct is not None:
         room = db.query(GameRoom).filter(GameRoom.id == player.room_id).first()
         if room:
+            logger.info(f"Updating AI benchmark for room {room.room_code}: portfolio=${request.ai_portfolio_value:.2f}, return={request.ai_total_return_pct:.2f}%")
             room.ai_portfolio_value = request.ai_portfolio_value
             room.ai_total_return_pct = request.ai_total_return_pct
             room.ai_current_day = request.current_day
+        else:
+            logger.warning(f"Room not found for player {player_id} when trying to update AI benchmark")
+    else:
+        logger.debug(f"No AI data provided in update for player {player_id}")
 
     db.commit()
     db.refresh(player)
@@ -553,6 +559,9 @@ def _build_room_response(room: GameRoom) -> RoomResponse:
         day_time_limit=room.day_time_limit,
         day_duration_seconds=room.day_duration_seconds,
         day_started_at=room.day_started_at.isoformat() if room.day_started_at else None,
+        ai_portfolio_value=room.ai_portfolio_value,
+        ai_total_return_pct=room.ai_total_return_pct,
+        ai_current_day=room.ai_current_day,
         created_at=room.created_at.isoformat(),
         started_at=room.started_at.isoformat() if room.started_at else None,
         game_started_at=room.game_started_at.isoformat() if room.game_started_at else None,
