@@ -35,13 +35,14 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-key")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "dev-jwt-secret")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(
+        os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
     # CORS - Allow frontend origins
     CORS_ORIGINS: list = [
         "http://localhost:3000",  # Local development
-        "https://stock-ai-platform-ejv3n8mn0-d9647s-projects.vercel.app",   # Vercel preview deployments
-        "https://stock-ai-platform-1yg3xjd7s-d9647s-projects.vercel.app/",
+        "https://stock-ai-platform-ejv3n8mn0-d9647s-projects.vercel.app",  # Vercel preview deployments
+        "https://stock-ai-platform-1yg3xjd7s-d9647s-projects.vercel.app",
         os.getenv("FRONTEND_URL", ""),  # Custom frontend URL from secrets
     ]
 
