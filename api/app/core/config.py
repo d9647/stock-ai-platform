@@ -37,8 +37,14 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
-    # CORS - Allow all origins for Replit proxy
-    CORS_ORIGINS: list = ["*"]
+    # CORS - Allow frontend origins
+    CORS_ORIGINS: list = [
+        "http://localhost:3000",  # Local development
+        "https://*.vercel.app",   # Vercel preview deployments
+        "https://*.replit.dev",   # Replit development URLs
+        "https://*.repl.co",      # Replit production URLs
+        os.getenv("FRONTEND_URL", ""),  # Custom frontend URL from secrets
+    ]
 
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
