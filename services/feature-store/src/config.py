@@ -16,7 +16,7 @@ class Config:
     # Database
     DATABASE_URL = os.getenv(
         "DATABASE_URL",
-        "postgresql://stockai:stockai@192.168.5.126:5432/stockai_dev"
+        "postgresql://stockai:stockai@localhost:5432/stockai_dev"
     )
 
     # Data settings

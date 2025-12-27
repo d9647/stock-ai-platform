@@ -53,7 +53,7 @@ async def startup_event():
     """Startup tasks."""
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
-    logger.info(f"API docs available at: http://192.168.5.126:{settings.API_PORT}/docs")
+    logger.info(f"API docs available at: http://localhost:{settings.API_PORT}/docs")
 
     # Start auto-advance scheduler for sync_auto mode
     start_scheduler()
