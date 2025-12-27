@@ -252,6 +252,14 @@ async def update_player_state(
     if request.is_finished:
         player.finished_at = datetime.utcnow()
 
+    # Update AI benchmark performance in the room (if provided)
+    if request.ai_portfolio_value is not None and request.ai_total_return_pct is not None:
+        room = db.query(GameRoom).filter(GameRoom.id == player.room_id).first()
+        if room:
+            room.ai_portfolio_value = request.ai_portfolio_value
+            room.ai_total_return_pct = request.ai_total_return_pct
+            room.ai_current_day = request.current_day
+
     db.commit()
     db.refresh(player)
 

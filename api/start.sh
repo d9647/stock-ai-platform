@@ -10,4 +10,5 @@ cd "$(dirname "$0")"
 #pip install -r requirements.txt
 
 echo "✅ Launching API server..."
-uvicorn app.main:app --host 0.0.0.0 --port 5000
+uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-5000}
+

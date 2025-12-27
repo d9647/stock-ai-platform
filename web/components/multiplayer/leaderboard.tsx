@@ -105,11 +105,9 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
   const leaderboardWithAI: LeaderboardEntry[] = useMemo(() => {
     if (!room) return sortedLeaderboard;
 
-    // Get AI performance from game store
-    const gameState = useGameStore.getState();
-    const aiPortfolioValue = gameState.getAIPortfolioValue();
-    const initialCash = gameState.config.initialCash;
-    const aiReturnPct = ((aiPortfolioValue - initialCash) / initialCash) * 100;
+    // Get AI performance from room data (synced from backend)
+    const aiPortfolioValue = room.ai_portfolio_value ?? room.config.initialCash;
+    const aiReturnPct = room.ai_total_return_pct ?? 0;
 
     const aiEntry: LeaderboardEntry = {
       rank: sortedLeaderboard.length + 1,
@@ -119,7 +117,7 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
       grade: 'N/A',
       portfolio_value: aiPortfolioValue,
       total_return_pct: aiReturnPct,
-      current_day: room.current_day,
+      current_day: room.ai_current_day ?? room.current_day,
       is_finished: room.status === 'finished',
     };
     return [...sortedLeaderboard, aiEntry];

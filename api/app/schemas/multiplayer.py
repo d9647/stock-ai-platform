@@ -87,6 +87,9 @@ class RoomResponse(BaseModel):
     day_time_limit: Optional[int] = None
     day_duration_seconds: Optional[int] = None
     day_started_at: Optional[str] = None
+    ai_portfolio_value: Optional[float] = None
+    ai_total_return_pct: Optional[float] = None
+    ai_current_day: Optional[int] = None
     created_at: str
     started_at: Optional[str]
     game_started_at: Optional[str] = None
@@ -129,6 +132,8 @@ class UpdatePlayerStateRequest(BaseModel):
     score_breakdown: Optional[Dict[str, Any]]
     portfolio_history: List[Dict[str, Any]]
     is_finished: bool = False
+    ai_portfolio_value: Optional[float] = None
+    ai_total_return_pct: Optional[float] = None
 
 
 # New schemas for sync mode

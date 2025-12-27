@@ -308,6 +308,8 @@ export const useGameStore = create<GameStore>()(
                     score_breakdown: newPlayerState.scoreBreakdown,
                     portfolio_history: newPlayerState.portfolioHistory,
                     is_finished: nextDay >= gameData.total_days - 1,
+                    ai_portfolio_value: aiPortfolioValue,
+                    ai_total_return_pct: aiSnapshot.returnPercent,
                   }),
                 }
               );

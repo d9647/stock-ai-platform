@@ -46,6 +46,9 @@ export interface RoomResponse {
   day_time_limit?: number;
   day_duration_seconds?: number;
   day_started_at?: string;
+  ai_portfolio_value?: number;
+  ai_total_return_pct?: number;
+  ai_current_day?: number;
   created_at: string;
   started_at?: string;
   game_started_at?: string;
@@ -98,6 +101,8 @@ export interface UpdatePlayerStateRequest {
   score_breakdown?: Record<string, any>;
   portfolio_history: any[];
   is_finished: boolean;
+  ai_portfolio_value?: number;
+  ai_total_return_pct?: number;
 }
 
 /**

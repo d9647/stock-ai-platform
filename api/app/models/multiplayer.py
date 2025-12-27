@@ -66,6 +66,11 @@ class GameRoom(Base):
     day_duration_seconds = Column(Integer)  # Auto-advance interval for sync_auto mode
     day_started_at = Column(DateTime(timezone=True))  # When current day started
 
+    # AI Benchmark Performance (updated by any player who completes a day)
+    ai_portfolio_value = Column(Float, nullable=True)  # Current AI portfolio value
+    ai_total_return_pct = Column(Float, nullable=True)  # AI return percentage
+    ai_current_day = Column(Integer, nullable=True)  # What day the AI performance is current to
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     started_at = Column(DateTime(timezone=True))  # When game started (legacy)
