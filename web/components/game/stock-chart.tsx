@@ -198,7 +198,7 @@ const chartData = useMemo<CandlestickData[]>(() => {
               <stop offset="95%" stopColor="#ff6b6b" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2f45" opacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#3b4060" opacity={0.3} />
           <XAxis
             dataKey="displayDate"
             stroke="#6f748a"
@@ -235,7 +235,7 @@ const chartData = useMemo<CandlestickData[]>(() => {
       {/* Volume Chart */}
       <ResponsiveContainer width="100%" height={120}>
         <ComposedChart data={chartData} margin={{ top: 0, right: 30, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2f45" opacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#3b4060" opacity={0.3} />
           <XAxis
             dataKey="displayDate"
             stroke="#6f748a"
