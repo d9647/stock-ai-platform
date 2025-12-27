@@ -11,6 +11,7 @@ CRITICAL DESIGN PRINCIPLES:
 If it can "think", it cannot block a request.
 If it serves a request, it must not think.
 """
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
@@ -18,6 +19,22 @@ from loguru import logger
 from .core.config import settings
 from .routes import health_router, recommendations_router, game_router, news_router, multiplayer_router
 from .scheduler import start_scheduler, stop_scheduler
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler for startup and shutdown tasks."""
+    # Startup
+    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    logger.info(f"Environment: {settings.ENVIRONMENT}")
+    logger.info(f"API docs available at: http://localhost:{settings.API_PORT}/docs")
+    start_scheduler()
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down application")
+    stop_scheduler()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -29,6 +46,7 @@ app = FastAPI(
     ),
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -46,26 +64,6 @@ app.include_router(recommendations_router, prefix=settings.API_PREFIX)
 app.include_router(game_router)
 app.include_router(news_router)
 app.include_router(multiplayer_router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Startup tasks."""
-    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-    logger.info(f"Environment: {settings.ENVIRONMENT}")
-    logger.info(f"API docs available at: http://localhost:{settings.API_PORT}/docs")
-
-    # Start auto-advance scheduler for sync_auto mode
-    start_scheduler()
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup tasks."""
-    logger.info("Shutting down application")
-
-    # Stop scheduler
-    stop_scheduler()
 
 
 @app.get("/")

@@ -55,6 +55,7 @@ class RecommendationDetailResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        protected_namespaces = ()  # Allow model_ prefix in field names
 
 
 class RecommendationListResponse(BaseModel):
