@@ -105,9 +105,28 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
   const leaderboardWithAI: LeaderboardEntry[] = useMemo(() => {
     if (!room) return sortedLeaderboard;
 
-    // Get AI performance from room data (synced from backend)
-    const aiPortfolioValue = room.ai_portfolio_value ?? room.config.initialCash;
-    const aiReturnPct = room.ai_total_return_pct ?? 0;
+    // Try to get AI performance from:
+    // 1. Room data (synced from backend by any player)
+    // 2. Local game store (if this player has played)
+    // 3. Initial cash (if no one has played yet)
+    let aiPortfolioValue = room.ai_portfolio_value;
+    let aiReturnPct = room.ai_total_return_pct;
+
+    // If backend has no AI data, try local store (for current player)
+    if (aiPortfolioValue == null || aiReturnPct == null) {
+      const gameState = useGameStore.getState();
+      if (gameState.gameData && gameState.ai.portfolioHistory.length > 0) {
+        // Use local AI data
+        const localAiValue = gameState.getAIPortfolioValue();
+        const initialCash = gameState.config.initialCash;
+        aiPortfolioValue = localAiValue;
+        aiReturnPct = ((localAiValue - initialCash) / initialCash) * 100;
+      } else {
+        // No AI data available yet
+        aiPortfolioValue = room.config.initialCash;
+        aiReturnPct = 0;
+      }
+    }
 
     const aiEntry: LeaderboardEntry = {
       rank: sortedLeaderboard.length + 1,
