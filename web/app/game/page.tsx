@@ -10,9 +10,13 @@ import { GameOver } from '@/components/game/game-over';
 export default function GamePage() {
   const { status, loadGameData, isMultiplayer, gameData: storeGameData } = useGameStore();
   const [showLobby, setShowLobby] = useState(true);
-  const [gameConfig, setGameConfig] = useState({
+  const [gameConfig, setGameConfig] = useState<{
+    days: number;
+    startDate?: string;
+    tickers: string[];
+  }>({
     days: 30,
-    startDate: useGameStore.getState().config.startDate || '',
+    startDate: useGameStore.getState().config.startDate || undefined,
     tickers: ['AAPL','MSFT','GOOGL','NVDA','AMZN','TSLA','META','WMT','MU','AVGO','TSM','JPM','BRK.A','INTC','AMD','QCOM','TXN','LRCX','KLAC','ASML','LLY','ORCL','V','PYPL','MA','JNJ','PLTR'],
   });
 
