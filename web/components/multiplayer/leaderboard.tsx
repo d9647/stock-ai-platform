@@ -14,7 +14,7 @@ interface LeaderboardViewProps {
   roomCode: string;
 }
 
-type SortKey = 'rank' | 'score' | 'return';
+type SortKey = 'rank' | 'score' | 'return' | 'portfolio';
 type SortDir = 'asc' | 'desc';
 
 export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
@@ -76,6 +76,10 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
           av = a.total_return_pct;
           bv = b.total_return_pct;
           break;
+        case 'portfolio':
+          av = a.portfolio_value;
+          bv = b.portfolio_value;
+          break;
         case 'rank':
         default:
           av = a.rank;
@@ -100,14 +104,21 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
   // Append AI benchmark as a virtual entry (ranked last; no player_id collision)
   const leaderboardWithAI: LeaderboardEntry[] = useMemo(() => {
     if (!room) return sortedLeaderboard;
+
+    // Get AI performance from game store
+    const gameState = useGameStore.getState();
+    const aiPortfolioValue = gameState.getAIPortfolioValue();
+    const initialCash = gameState.config.initialCash;
+    const aiReturnPct = ((aiPortfolioValue - initialCash) / initialCash) * 100;
+
     const aiEntry: LeaderboardEntry = {
       rank: sortedLeaderboard.length + 1,
       player_id: 'AI_BENCHMARK',
       player_name: 'AI Agent',
       score: 0,
       grade: 'N/A',
-      portfolio_value: 0,
-      total_return_pct: 0,
+      portfolio_value: aiPortfolioValue,
+      total_return_pct: aiReturnPct,
       current_day: room.current_day,
       is_finished: room.status === 'finished',
     };
@@ -138,9 +149,9 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="grid grid-cols-6 gap-4 px-4 py-4 border-b border-borderDark-subtle last:border-b-0"
+                className="grid grid-cols-7 gap-4 px-4 py-4 border-b border-borderDark-subtle last:border-b-0"
               >
-                {[...Array(6)].map((__, j) => (
+                {[...Array(7)].map((__, j) => (
                   <div
                     key={j}
                     className="h-4 bg-layer3 animate-pulse rounded-md"
@@ -213,7 +224,7 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
         <div className="bg-layer2 border border-borderDark-subtle rounded-md overflow-hidden">
           {/* Sticky header */}
           <div className="sticky top-0 z-10 bg-layer2 border-b border-borderDark-subtle">
-            <div className="grid grid-cols-6 gap-4 px-4 py-3 text-xs uppercase tracking-wide text-text-muted">
+            <div className="grid grid-cols-7 gap-4 px-4 py-3 text-xs uppercase tracking-wide text-text-muted">
               <button onClick={() => toggleSort('rank')} className="text-left">
                 Rank <SortIcon active={sortKey === 'rank'} />
               </button>
@@ -224,6 +235,12 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
                 className="text-right"
               >
                 Score <SortIcon active={sortKey === 'score'} />
+              </button>
+              <button
+                onClick={() => toggleSort('portfolio')}
+                className="text-right"
+              >
+                Portfolio <SortIcon active={sortKey === 'portfolio'} />
               </button>
               <button
                 onClick={() => toggleSort('return')}
@@ -243,7 +260,7 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
             return (
               <div
                 key={entry.player_id}
-                className={`grid grid-cols-6 gap-4 px-4 py-4 border-b border-borderDark-subtle last:border-b-0 text-sm
+                className={`grid grid-cols-7 gap-4 px-4 py-4 border-b border-borderDark-subtle last:border-b-0 text-sm
                 ${isCurrentUser ? 'bg-layer3' : ''}`}
               >
                 {/* Rank */}
@@ -270,6 +287,11 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
                 {/* Score */}
                 <div className="text-right font-medium text-text-primary">
                   {entry.score.toFixed(0)}
+                </div>
+
+                {/* Portfolio Value */}
+                <div className="text-right text-text-primary">
+                  ${entry.portfolio_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
 
                 {/* Return */}
