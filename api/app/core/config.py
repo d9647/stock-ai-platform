@@ -40,9 +40,7 @@ class Settings(BaseSettings):
     # CORS - Allow frontend origins
     CORS_ORIGINS: list = [
         "http://localhost:3000",  # Local development
-        "https://*.vercel.app",   # Vercel preview deployments
-        "https://*.replit.dev",   # Replit development URLs
-        "https://*.repl.co",      # Replit production URLs
+        "hhttps://stock-ai-platform-ejv3n8mn0-d9647s-projects.vercel.app",   # Vercel preview deployments
         os.getenv("FRONTEND_URL", ""),  # Custom frontend URL from secrets
     ]
 

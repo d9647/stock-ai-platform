@@ -2,4 +2,8 @@
 cd ../web
 pnpm install
 echo $NEXT_PUBLIC_API_URL
-pnpm dev
+# for development mode
+#pnpm dev
+# below is for production mode
+rm -rf .next
+npm run build
