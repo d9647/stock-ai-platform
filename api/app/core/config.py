@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     # CORS - Allow frontend origins
     CORS_ORIGINS: list = [
-        "https://stock-simulation-lab.vercel.app/",  # Production frontend
+        "https://stock-simulation-lab.vercel.app",  # Production frontend
         "http://localhost:3000",  # Local development
     ]
 
