@@ -249,7 +249,7 @@ export function CreateRoom() {
               Game Mode
             </label>
 
-            <div className="space-y-3">
+            <div className="bg-layer1 border border-borderDark-subtle rounded-md p-4 ">
               {[
                 {
                   id: 'sync_auto',
@@ -269,7 +269,7 @@ export function CreateRoom() {
               ].map((mode) => (
                 <label
                   key={mode.id}
-                  className="flex items-start gap-3 bg-layer1 border border-borderDark-subtle p-3 cursor-pointer"
+                  className="flex items-start gap-3 bg-layer1  p-3 cursor-pointer"
                   style={{ borderRadius: '0.375rem' }}
                 >
                   <input

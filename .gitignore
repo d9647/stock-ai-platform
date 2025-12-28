@@ -103,3 +103,5 @@ scripts/run-*
 tmp/
 temp/
 *.tmp
+
+scripts/run*.sh
