@@ -36,3 +36,8 @@ externalPort = 80
 
 [deployment]
 run = ["bash", "api/start.sh"]
+
+[userenv]
+
+[userenv.shared]
+FRONTEND_URL = "https://stock-simulation-lab.vercel.app/"
