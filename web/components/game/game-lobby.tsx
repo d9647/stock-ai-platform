@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { useGameStore } from '@/lib/stores/gameStore';
 
 interface GameLobbyProps {
@@ -14,6 +15,14 @@ interface GameLobbyProps {
   onConfigChange: (config: { days: number; startDate?: string; tickers: string[] }) => void;
 }
 
+// All available stocks
+const ALL_AVAILABLE_TICKERS = [
+  'AAPL', 'MSFT', 'GOOGL', 'NVDA', 'AMZN', 'TSLA', 'META', 'WMT',
+  'MU', 'AVGO', 'TSM', 'JPM', 'BRK.A', 'INTC', 'AMD', 'QCOM',
+  'TXN', 'LRCX', 'KLAC', 'ASML', 'LLY', 'ORCL', 'V', 'PYPL',
+  'MA', 'JNJ', 'PLTR'
+];
+
 export function GameLobby({
   isLoading,
   error,
@@ -22,6 +31,9 @@ export function GameLobby({
   onConfigChange,
 }: GameLobbyProps) {
   const { startGame } = useGameStore();
+  const [showAllTickers, setShowAllTickers] = useState(false);
+  const [showStockPicker, setShowStockPicker] = useState(false);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const handleStartGame = () => {
     startGame({
@@ -34,13 +46,30 @@ export function GameLobby({
     onStart();
   };
 
+  const toggleTicker = (ticker: string) => {
+    const newTickers = gameConfig.tickers.includes(ticker)
+      ? gameConfig.tickers.filter(t => t !== ticker)
+      : [...gameConfig.tickers, ticker];
+
+    onConfigChange({
+      ...gameConfig,
+      tickers: newTickers,
+    });
+  };
+
+  const handleDateDoubleClick = () => {
+    if (dateInputRef.current) {
+      dateInputRef.current.showPicker();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-base flex items-center justify-center p-6">
-      <div className="bg-layer2 border border-borderDark-subtle max-w-2xl w-full p-8">
+      <div className="bg-layer2 border border-borderDark-subtle max-w-2xl w-full p-8 rounded-md">
         {/* Title */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-semibold text-text-primary mb-2">
-            AI Stock Challenge
+            Stock Simulation Lobby
           </h1>
           <p className="text-sm text-text-secondary">
             Learn portfolio decision-making by comparing your results with an AI benchmark
@@ -101,19 +130,25 @@ export function GameLobby({
             {/* Start Date */}
             <div>
               <label className="block text-xs text-text-muted mb-2">
-                Start Date (earliest 2025-01-01)
+                Start Date (earliest 2025-01-01) - Double click to open calendar
               </label>
               <input
+                ref={dateInputRef}
                 type="date"
                 min="2025-01-01"
                 value={gameConfig.startDate || '2025-01-01'}
-                onChange={(e) =>
-                  onConfigChange({
-                    ...gameConfig,
-                    startDate: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+                onChange={(e) => {
+                  const selectedDate = e.target.value;
+                  // Prevent dates earlier than 2025-01-01
+                  if (selectedDate >= '2025-01-01') {
+                    onConfigChange({
+                      ...gameConfig,
+                      startDate: selectedDate,
+                    });
+                  }
+                }}
+                onDoubleClick={handleDateDoubleClick}
+                className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary cursor-pointer"
               />
               <p className="text-xs text-text-muted mt-1">
                 Latest start depends on available data; choose any date on or after 2025-01-01.
@@ -122,19 +157,81 @@ export function GameLobby({
 
             {/* Tickers */}
             <div>
-              <label className="block text-xs text-text-muted mb-2">
-                Stocks included
-              </label>
-              <div className="flex gap-2 flex-wrap">
-                {gameConfig.tickers.map((ticker) => (
-                  <span
-                    key={ticker}
-                    className="px-3 py-1 border border-borderDark-subtle text-text-primary text-xs font-mono"
-                  >
-                    {ticker}
-                  </span>
-                ))}
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-xs text-text-muted">
+                  Stocks included ({gameConfig.tickers.length} selected)
+                </label>
+                <button
+                  onClick={() => setShowStockPicker(!showStockPicker)}
+                  className="text-xs text-text-muted hover:text-text-primary underline"
+                >
+                  {showStockPicker ? 'Done' : 'Select stocks'}
+                </button>
               </div>
+
+              {/* Stock Picker */}
+              {showStockPicker ? (
+                <div className="bg-layer1 border border-borderDark-subtle p-4 rounded max-h-64 overflow-y-auto">
+                  <div className="grid grid-cols-4 gap-2">
+                    {ALL_AVAILABLE_TICKERS.map((ticker) => {
+                      const isSelected = gameConfig.tickers.includes(ticker);
+                      return (
+                        <button
+                          key={ticker}
+                          onClick={() => toggleTicker(ticker)}
+                          className={`px-3 py-2 text-xs font-mono border transition-colors ${
+                            isSelected
+                              ? 'bg-neutral-600 border-neutral-500 text-white'
+                              : 'border-borderDark-subtle text-text-muted hover:bg-layer2 hover:text-text-primary'
+                          }`}
+                        >
+                          {ticker}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-borderDark-subtle flex gap-2">
+                    <button
+                      onClick={() => onConfigChange({ ...gameConfig, tickers: ALL_AVAILABLE_TICKERS })}
+                      className="text-xs text-text-muted hover:text-text-primary underline"
+                    >
+                      Select all
+                    </button>
+                    <button
+                      onClick={() => onConfigChange({ ...gameConfig, tickers: [] })}
+                      className="text-xs text-text-muted hover:text-text-primary underline"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Selected Stocks Display */
+                <div className="flex gap-2 flex-wrap items-center">
+                  {gameConfig.tickers.length === 0 ? (
+                    <span className="text-xs text-text-muted italic">No stocks selected</span>
+                  ) : (
+                    <>
+                      {(showAllTickers ? gameConfig.tickers : gameConfig.tickers.slice(0, 5)).map((ticker) => (
+                        <span
+                          key={ticker}
+                          className="px-3 py-1 border border-borderDark-subtle text-text-primary text-xs font-mono"
+                        >
+                          {ticker}
+                        </span>
+                      ))}
+                      {gameConfig.tickers.length > 5 && (
+                        <button
+                          onClick={() => setShowAllTickers(!showAllTickers)}
+                          className="px-3 py-1 border border-borderDark-subtle text-text-muted hover:text-text-primary hover:bg-layer1 text-xs transition-colors"
+                        >
+                          {showAllTickers ? '− Show less' : `+ ${gameConfig.tickers.length - 5} more`}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

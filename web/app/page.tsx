@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-base text-text-primary">
-      <div className="container mx-auto px-6 py-20">
+      <div className="container mx-auto px-6 py-40">
         <div className="max-w-4xl mx-auto">
 
           {/* Hero */}
@@ -11,17 +11,34 @@ export default function HomePage() {
             <h1 className="text-4xl font-semibold text-text-primary mb-4">
               Stock Simulation Lab
             </h1>
+            <br></br>
             <p className="text-lg text-text-secondary mb-3">
-              A structured way to learn portfolio decision-making using real historical market data.
-            </p>
+              An educational market simulator powered by real historical data.
+            </p><br></br>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+              <div className="bg-layer2 border border-borderDark-subtle p-6 rounded-md">
+                <div className="text-sm font-medium text-text-secondary mb-2">
+                  Designed for students to practice trading and investment analysis   with current news, technical analysis, AI-generated insights and feedback.
+                  with current news, technical analysis, AI-generated insights and feedback.
+                </div>
+              </div>
+              <div className="bg-layer2 border border-borderDark-subtle p-6 rounded-md">
+                <div className="text-sm font-medium text-text-secondary mb-2">
+                  Designed for classrooms, where students play the same market, see clear AI suggestions, review results, and compare rankings on a simple leaderboard — making learning fun and competitive.
+                </div>
+              </div>
+            </div>
+          </div>
+            
+            {/*}
             <p className="text-sm text-text-muted max-w-2xl mx-auto">
               This is a turn-based educational simulation where you manage a virtual portfolio
               and review AI-generated market analysis based on past prices and news.
               Your decisions are evaluated against an AI reference model for learning and grading.
             </p>
-          </div>
+            </div>
 
-          {/* Features */}
+          {/*  
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="bg-layer2 border border-borderDark-subtle p-6 rounded-md">
               <div className="text-sm font-medium text-text-primary mb-2">
@@ -53,12 +70,13 @@ export default function HomePage() {
               </p>
             </div>
           </div>
+          */}
 
           {/* Play Options */}
           <div className="text-center mb-12">
-            <h2 className="text-xl font-semibold text-text-primary mb-5">
+            {/*<h2 className="text-xl font-semibold text-text-primary mb-5">
               Play options
-            </h2>
+            </h2>*/}
 
             {/* Primary action */}
             <Link
@@ -95,14 +113,23 @@ export default function HomePage() {
 
             <p className="text-xs text-text-muted mt-4">
               No login required · Paper trading only · Free for education
-            </p>
+           </p><br></br>
           </div>
 
           {/* Education Context */}
+          {/*
           <div className="bg-layer2 border border-borderDark-subtle p-8 rounded-md">
             <h2 className="text-lg font-semibold text-text-primary mb-4">
               Designed for classrooms
             </h2>
+            
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              <div className="bg-layer2 border border-borderDark-subtle p-6 rounded-md">
+                <div className="text-sm font-medium text-text-secondary mb-2">
+                  Designed for classrooms, where students play the same market, see clear AI suggestions, review results, and compare rankings on a simple leaderboard—making learning fun and competitive.
+            
+            </div></div></div>
+            
             <ul className="space-y-3 text-sm text-text-secondary">
               <li>
                 • Teachers can create shared scenarios so all students experience the same market conditions
@@ -118,7 +145,7 @@ export default function HomePage() {
               </li>
             </ul>
           </div>
-
+          */}
         </div>
       </div>
     </main>

@@ -110,6 +110,20 @@ export function GameView() {
             {/* Chart */}
             <StockChart ticker={selectedTicker} />
 
+            {/* Technical Signals - Show on mobile right after chart */}
+            <div className="lg:hidden">
+              <TechnicalSignals
+                ticker={selectedTicker}
+                technicalData={currentDayData.technical_indicators?.[selectedTicker]}
+                currentPrice={currentDayData.prices[selectedTicker]?.close || 0}
+              />
+            </div>
+
+            {/* News - Show on mobile right after technical signals */}
+            <div className="lg:hidden">
+              <NewsPanel selectedTicker={selectedTicker} />
+            </div>
+
             {/* Portfolio */}
             <PortfolioSummary />
 
@@ -135,15 +149,19 @@ export function GameView() {
                 </div>
               )*/}
 
-              {/* Technical Signals */}
-              <TechnicalSignals
-                ticker={selectedTicker}
-                technicalData={currentDayData.technical_indicators?.[selectedTicker]}
-                currentPrice={currentDayData.prices[selectedTicker]?.close || 0}
-              />
+              {/* Technical Signals - Show on desktop in sidebar */}
+              <div className="hidden lg:block">
+                <TechnicalSignals
+                  ticker={selectedTicker}
+                  technicalData={currentDayData.technical_indicators?.[selectedTicker]}
+                  currentPrice={currentDayData.prices[selectedTicker]?.close || 0}
+                />
+              </div>
 
-              {/* News */}
-              <NewsPanel selectedTicker={selectedTicker} />
+              {/* News - Show on desktop in sidebar */}
+              <div className="hidden lg:block">
+                <NewsPanel selectedTicker={selectedTicker} />
+              </div>
 
               {/* AI Trade Log */}
               <AITradeLog />

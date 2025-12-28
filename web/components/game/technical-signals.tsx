@@ -329,17 +329,17 @@ export function TechnicalSignals({ ticker, technicalData, currentPrice }: Techni
       </div>
 
       {/* Signal Strip */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
         {signals.map((signal) => (
           <div
             key={signal.label}
-            className={`group relative flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs font-medium transition-all cursor-help ${getStatusColor(signal.status)}`}
+            className={`group relative flex items-center gap-1 px-2 py-1.5 rounded border text-xs font-medium transition-all cursor-help flex-shrink-0 ${getStatusColor(signal.status)}`}
             title={signal.tooltip}
           >
             {getStatusIcon(signal.status)}
             <div className="flex flex-col">
-              <span className="font-semibold">{signal.label}</span>
-              <span className="text-[10px] opacity-90">{signal.shortText}</span>
+              <span className="font-semibold text-[10px] sm:text-xs">{signal.label}</span>
+              <span className="text-[9px] sm:text-[10px] opacity-90">{signal.shortText}</span>
             </div>
 
             {/* Tooltip on hover */}

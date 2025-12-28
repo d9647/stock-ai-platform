@@ -89,7 +89,7 @@ export function PortfolioSummary() {
           <div className="text-right">
             {beatAI ? (
               <div className="text-success font-bold text-base">
-                🎯 You're winning!
+                You're winning!
               </div>
             ) : (
               <div className="text-warning font-bold text-base">AI is ahead</div>

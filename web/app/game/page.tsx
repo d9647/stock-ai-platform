@@ -17,7 +17,7 @@ export default function GamePage() {
   }>({
     days: 30,
     startDate: useGameStore.getState().config.startDate || undefined,
-    tickers: ['AAPL','MSFT','GOOGL','NVDA','AMZN','TSLA','META','WMT','MU','AVGO','TSM','JPM','BRK.A','INTC','AMD','QCOM','TXN','LRCX','KLAC','ASML','LLY','ORCL','V','PYPL','MA','JNJ','PLTR'],
+    tickers: ['AAPL', 'MSFT'], // Default to just AAPL and MSFT
   });
 
   const computeEndDate = () => {

@@ -276,7 +276,7 @@ const handleExportPDF = async () => {
           {/* PDF Header */}
           <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 16, fontWeight: 700 }}>
-              AI Stock Challenge — Results
+              Stock Trading Challenge — Results
             </div>
             <div style={{ fontSize: 12, color: '#444' }}>
               Student: {player.playerName || 'Student'}
