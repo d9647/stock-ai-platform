@@ -96,7 +96,7 @@ export function JoinRoom() {
               }
               className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle
                          text-text-primary text-center text-lg font-mono tracking-widest uppercase
-                         rounded-md focus:outline-none"
+                         rounded-md focus:outline-none placeholder:text-text-muted/50"
               placeholder="ABC123"
             />
             <p className="text-xs text-text-muted mt-1">
@@ -117,7 +117,7 @@ export function JoinRoom() {
                 setFormData({ ...formData, playerName: e.target.value })
               }
               className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle
-                         text-text-primary rounded-md focus:outline-none"
+                         text-text-primary rounded-md focus:outline-none placeholder:text-text-muted/50"
               placeholder="Jane Doe"
             />
           </div>
@@ -134,19 +134,28 @@ export function JoinRoom() {
                 setFormData({ ...formData, playerEmail: e.target.value })
               }
               className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle
-                         text-text-primary rounded-md focus:outline-none"
+                         text-text-primary rounded-md focus:outline-none placeholder:text-text-muted/50"
               placeholder="student@school.edu"
             />
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary rounded-md py-2.5 font-medium disabled:opacity-60"
-          >
-            {loading ? 'Joining…' : 'Join room'}
-          </button>
+          {/* Submit and Cancel Buttons */}
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="px-4 py-2 text-sm font-medium text-text-muted border border-borderDark-subtle rounded-full transition-colors hover:text-text-primary hover:bg-layer1"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 btn-primary text-sm font-medium border border-borderDark-subtle rounded-full transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Submitting…' : 'Submit'}
+            </button>
+          </div>
         </form>
 
         {/* Footer CTA */}

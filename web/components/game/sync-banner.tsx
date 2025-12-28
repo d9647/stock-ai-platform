@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   getRoomState,
   markPlayerReady,
@@ -12,6 +13,7 @@ interface SyncBannerProps {
   playerId: string;
   currentDay: number;
   gameMode?: 'async' | 'sync' | 'sync_auto';
+  playerCount?: number;
 }
 
 export function SyncBanner({
@@ -19,18 +21,22 @@ export function SyncBanner({
   playerId,
   currentDay,
   gameMode,
+  playerCount,
 }: SyncBannerProps) {
+  const router = useRouter();
   const [roomState, setRoomState] = useState<RoomStateResponse | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [markingReady, setMarkingReady] = useState(false);
   const lastDayRef = useRef<number | null>(null);
 
-
+  const isAsyncMode = gameMode === 'async';
 
   /* --------------------------------------------------
-     Poll room state
+     Poll room state (skip for async mode)
   -------------------------------------------------- */
   useEffect(() => {
+    if (isAsyncMode) return;
+
     const pollState = async () => {
       try {
         const state = await getRoomState(roomCode);
@@ -43,7 +49,7 @@ export function SyncBanner({
     pollState();
     const interval = setInterval(pollState, 1000);
     return () => clearInterval(interval);
-  }, [roomCode]);
+  }, [roomCode, isAsyncMode]);
 
   /* --------------------------------------------------
      Reset ready when day advances or server resets
@@ -72,6 +78,37 @@ export function SyncBanner({
       setMarkingReady(false);
     }
   };
+
+  // For async mode, show a simpler banner
+  if (isAsyncMode) {
+    return (
+      <div className="bg-layer1 border-b border-borderDark-subtle">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            {/* Left: Mode + Status */}
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium text-text-primary">
+                Asynchronous Mode · Room {roomCode}
+              </div>
+              <div className="text-xs text-text-muted">
+                Play at your own pace. Your progress is automatically saved.
+              </div>
+            </div>
+
+            {/* Right: Players */}
+            {playerCount !== undefined && (
+              <div className="text-right">
+                <div className="text-xs text-text-muted">Players</div>
+                <div className="text-sm font-medium text-text-primary">
+                  {playerCount}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!roomState) return null;
 
@@ -150,12 +187,12 @@ export function SyncBanner({
               )}
 
             {isFinished && (
-              <a
-                href={`/multiplayer/leaderboard/${roomCode}`}
+              <button
+                onClick={() => router.push(`/multiplayer/leaderboard/${roomCode}`)}
                 className="px-4 py-1.5 text-xs btn-primary"
               >
                 View leaderboard →
-              </a>
+              </button>
             )}
           </div>
         </div>

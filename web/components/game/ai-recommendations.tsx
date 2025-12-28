@@ -110,7 +110,7 @@ export function AIRecommendations() {
     <>
       <div className="bg-layer2 border border-borderDark-subtle p-6 rounded-lg">
         <h2 className="text-lg font-semibold text-text-primary mb-4">
-          AI Recommendations
+          AI Insights
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-1">

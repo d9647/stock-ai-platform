@@ -67,31 +67,24 @@ export function GameLobby({
     <div className="min-h-screen bg-base flex items-center justify-center p-6">
       <div className="bg-layer2 border border-borderDark-subtle max-w-2xl w-full p-8 rounded-md">
         {/* Title */}
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center rounded-full">
           <h1 className="text-3xl font-semibold text-text-primary mb-2">
-            Stock Simulation Lobby
+            How do you like to play?
           </h1>
           <p className="text-sm text-text-secondary">
-            Learn portfolio decision-making by comparing your results with an AI benchmark
+            Choose a start date and game length, begin with $100,000, pick your stocks, and trade using daily market data and AI insights.
           </p>
         </div>
 
         {/* How to Play */}
-        <div className="bg-layer1 border border-borderDark-subtle p-6 mb-8">
+        {/*<div className="bg-layer1 border border-borderDark-subtle p-6 mb-8 rounded-full">
           <h2 className="text-sm font-medium text-text-primary mb-4">
             How this simulation works
           </h2>
-          <ul className="space-y-2 text-sm text-text-secondary">
-            <li>• You start with <strong className="text-text-primary">$100,000</strong> in virtual cash</li>
-            <li>• Each day, the AI provides market analysis and recommendations</li>
-            <li>• You may buy only when the AI signals BUY or STRONG BUY</li>
-            <li>• You choose when to sell based on your own judgment</li>
-            <li>• Trades execute at the next market open</li>
-            <li>
-              • At the end, your performance is evaluated against the AI as a reference point
-            </li>
-          </ul>
-        </div>
+          <p className="text-sm text-text-secondary">
+            Choose a start date and game length, begin with $100,000, pick your stocks, and trade using daily market data and AI insights.
+          </p>
+        </div>*/}
 
         {/* Game Settings */}
         <div className="mb-8">
@@ -130,26 +123,28 @@ export function GameLobby({
             {/* Start Date */}
             <div>
               <label className="block text-xs text-text-muted mb-2">
-                Start Date (earliest 2025-01-01) - Double click to open calendar
+                Start Date (earliest 2025-01-01)
               </label>
-              <input
-                ref={dateInputRef}
-                type="date"
-                min="2025-01-01"
-                value={gameConfig.startDate || '2025-01-01'}
-                onChange={(e) => {
-                  const selectedDate = e.target.value;
-                  // Prevent dates earlier than 2025-01-01
-                  if (selectedDate >= '2025-01-01') {
-                    onConfigChange({
-                      ...gameConfig,
-                      startDate: selectedDate,
-                    });
-                  }
-                }}
-                onDoubleClick={handleDateDoubleClick}
-                className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary cursor-pointer"
-              />
+              <div className="max-w-[200px]">
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  min="2025-01-01"
+                  value={gameConfig.startDate || '2025-01-01'}
+                  onChange={(e) => {
+                    const selectedDate = e.target.value;
+                    // Prevent dates earlier than 2025-01-01
+                    if (selectedDate >= '2025-01-01') {
+                      onConfigChange({
+                        ...gameConfig,
+                        startDate: selectedDate,
+                      });
+                    }
+                  }}
+                  onClick={() => dateInputRef.current?.showPicker()}
+                  className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary cursor-pointer rounded-md"
+                />
+              </div>
               <p className="text-xs text-text-muted mt-1">
                 Latest start depends on available data; choose any date on or after 2025-01-01.
               </p>
@@ -248,14 +243,23 @@ export function GameLobby({
           </div>
         )}
 
-        {/* Start Button */}
-        <button
-          onClick={handleStartGame}
-          disabled={isLoading || !!error}
-          className="w-full btn-primary py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
-        >
-          {isLoading ? 'Preparing simulation…' : 'Let\'s play!'}
-        </button>
+        {/* Start and Cancel Buttons */}
+        <div className="flex gap-3 justify-end">
+          <button
+            type="button"
+            onClick={() => window.location.href = '/'}
+            className="px-4 py-2 text-sm font-medium text-text-muted border border-borderDark-subtle rounded-full transition-colors hover:text-text-primary hover:bg-layer1"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleStartGame}
+            disabled={isLoading || !!error}
+            className="px-6 py-2 btn-primary text-sm font-medium border border-borderDark-subtle rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Preparing…' : 'Let\'s play!'}
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="mt-6 text-center text-xs text-text-muted">

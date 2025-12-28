@@ -122,14 +122,14 @@ const chartData = useMemo<CandlestickData[]>(() => {
 }, [gameData, player.currentDay, ticker]);
 
  // ✅ INSERT DEBUG LOG HERE
-  if (gameData && chartData.length > 0) {
+  {/*if (gameData && chartData.length > 0) {
     console.log(
       'Decision date:',
       gameData.days[player.currentDay]?.date,
       'Last candle:',
       chartData[chartData.length - 1]?.date
     );
-  }
+  }*/}
 
   const latestPrice = chartData[chartData.length - 1];
 

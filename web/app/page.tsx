@@ -96,7 +96,7 @@ export default function HomePage() {
             </div>
 
             {/* Secondary actions */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-wrap gap-3 justify-center">
               <Link
                 href="/multiplayer/create"
                 className="inline-block px-6 py-2.5 text-sm font-medium border border-borderDark-subtle rounded-sm text-text-secondary hover:text-text-primary hover:bg-layer2 transition"

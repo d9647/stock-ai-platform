@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createRoom, type CreateRoomRequest } from '@/lib/api/multiplayer';
 import { useGameStore } from '@/lib/stores/gameStore';
@@ -11,6 +11,7 @@ export function CreateRoom() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     teacherName: '',
@@ -33,6 +34,20 @@ export function CreateRoom() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate seconds per day for sync_auto mode
+    if (formData.gameMode === 'sync_auto') {
+      const seconds = Number(formData.dayDurationSeconds);
+      if (!formData.dayDurationSeconds || isNaN(seconds) || seconds === 0) {
+        alert('Please enter a value for Seconds per Day');
+        return;
+      }
+      if (seconds < 10 || seconds > 600) {
+        alert('Seconds per Day must be between 10 and 600');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
 
@@ -110,7 +125,7 @@ export function CreateRoom() {
               onChange={(e) =>
                 setFormData({ ...formData, teacherName: e.target.value })
               }
-              className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+              className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary placeholder:text-text-muted/50"
               style={{ borderRadius: '0.375rem' }}
               placeholder="Ms. Smith"
             />
@@ -127,95 +142,106 @@ export function CreateRoom() {
               onChange={(e) =>
                 setFormData({ ...formData, roomName: e.target.value })
               }
-              className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+              className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary placeholder:text-text-muted/50"
               style={{ borderRadius: '0.375rem' }}
-          placeholder="Period 3 Economics"
-        />
-      </div>
+              placeholder="Period 3 Economics"
+            />
+          </div>
 
-      {/* Start Date */}
-      <div>
-        <label className="block text-sm text-text-secondary mb-1">
-          Start Date (earliest 2025-01-01)
-        </label>
-        <input
-          type="date"
-          min="2025-01-01"
-          value={formData.startDate}
-          onChange={(e) =>
-            setFormData({ ...formData, startDate: e.target.value })
-          }
-          className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
-          style={{ borderRadius: '0.375rem' }}
-        />
-        <p className="text-xs text-text-muted mt-1">
-          Start dates must be on or after 2025-01-01; latest depends on available data.
-        </p>
-      </div>
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm text-text-secondary mb-1">
+              Start Date (earliest 2025-01-01)
+            </label>
+            <div className="max-w-[200px]">
+              <input
+                ref={dateInputRef}
+                type="date"
+                min="2025-01-01"
+                value={formData.startDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDate: e.target.value })
+                }
+                onClick={() => dateInputRef.current?.showPicker()}
+                className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary cursor-pointer"
+                style={{ borderRadius: '0.375rem' }}
+              />
+            </div>
+            <p className="text-xs text-text-muted mt-1">
+              Start dates must be on or after 2025-01-01; latest depends on available data.
+            </p>
+          </div>
 
       {/* Game Duration */}
       <div>
         <label className="block text-sm text-text-secondary mb-1">
           Game Duration (Calendar Days)
         </label>
-            <select
-              value={formData.numDays}
-              onChange={(e) =>
-                setFormData({ ...formData, numDays: parseInt(e.target.value) })
-              }
-              className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
-              style={{ borderRadius: '0.375rem' }}
-            >
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
-              <option value={60}>60 days</option>
-              <option value={90}>90 days</option>
-            </select>
-          </div>
+        <div className="max-w-[200px]">
+          <select
+            value={formData.numDays}
+            onChange={(e) =>
+              setFormData({ ...formData, numDays: parseInt(e.target.value) })
+            }
+            className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+            style={{ borderRadius: '0.375rem' }}
+          >
+            <option value={14}>14 days</option>
+            <option value={30}>30 days</option>
+            <option value={60}>60 days</option>
+            <option value={90}>90 days</option>
+          </select>
+        </div>
+      </div>
 
-          {/* Starting Cash */}
-          <div>
-            <label className="block text-sm text-text-secondary mb-1">
-              Starting Cash
-            </label>
-            <select
-              value={formData.initialCash}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  initialCash: parseInt(e.target.value),
-                })
-              }
-              className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
-              style={{ borderRadius: '0.375rem' }}
-            >
-              <option value={10000}>$10,000</option>
-              <option value={20000}>$20,000</option>
-              <option value={50000}>$50,000</option>
-              <option value={100000}>$100,000</option>
-            </select>
-          </div>
+      {/* Starting Cash */}
+      <div>
+        <label className="block text-sm text-text-secondary mb-1">
+          Starting Cash
+        </label>
+        <div className="max-w-[200px]">
+          <select
+            value={formData.initialCash}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                initialCash: parseInt(e.target.value),
+              })
+            }
+            className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+            style={{ borderRadius: '0.375rem' }}
+          >
+            <option value={10000}>$10,000</option>
+            <option value={20000}>$20,000</option>
+            <option value={50000}>$50,000</option>
+            <option value={100000}>$100,000</option>
+          </select>
+        </div>
+      </div>
 
-          {/* Difficulty */}
-          <div>
-            <label className="block text-sm text-text-secondary mb-1">
-              Difficulty Level
-            </label>
-            <select
-              value={formData.difficulty}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  difficulty: e.target.value as any,
-                })
-              }
-              className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
+      {/* Difficulty */}
+      <div>
+        <label className="block text-sm text-text-secondary mb-1">
+          Difficulty Level
+        </label>
+        <div className="max-w-[200px]">
+          <select
+            value={formData.difficulty}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                difficulty: e.target.value as any,
+              })
+            }
+            className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+            style={{ borderRadius: '0.375rem' }}
+          >
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
 
           {/* Game Mode */}
           <div>
@@ -278,35 +304,46 @@ export function CreateRoom() {
               <label className="block text-sm text-text-secondary mb-1">
                 Seconds per Day
               </label>
-              <input
-                type="number"
-                min={10}
-                max={600}
-                value={formData.dayDurationSeconds}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    dayDurationSeconds: Number(e.target.value),
-                  })
-                }
-                className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
-                style={{ borderRadius: '0.375rem' }}
-              />
+              <div className="max-w-[200px]">
+                <input
+                  type="number"
+                  min={10}
+                  max={600}
+                  value={formData.dayDurationSeconds}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData({
+                      ...formData,
+                      dayDurationSeconds: value === '' ? '' as any : Number(value),
+                    });
+                  }}
+                  className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary"
+                  style={{ borderRadius: '0.375rem' }}
+                />
+              </div>
               <p className="text-xs text-text-muted mt-1">
                 Recommended: 30–120 seconds
               </p>
             </div>
           )}
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary py-3 font-medium transition-colors"
-            style={{ borderRadius: '0.375rem' }}
-          >
-            {loading ? 'Creating Room…' : 'Create Room'}
-          </button>
+          {/* Submit and Cancel Buttons */}
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="px-4 py-2 text-sm font-medium text-text-muted border border-borderDark-subtle rounded-full transition-colors hover:text-text-primary hover:bg-layer1"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 btn-primary text-sm font-medium border border-borderDark-subtle rounded-full transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Submitting…' : 'Submit'}
+            </button>
+          </div>
         </form>
 
         {/* Footer CTA */}

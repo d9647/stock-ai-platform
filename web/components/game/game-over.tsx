@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useGameStore } from '@/lib/stores/gameStore';
 import { formatCurrency, formatPercent } from '@/lib/utils/format';
+import { getRoom, type RoomResponse } from '@/lib/api/multiplayer';
 
 interface GameOverProps {
   //onRestart: () => void;
@@ -23,11 +24,21 @@ export function GameOver({ /*onRestart*/ }: GameOverProps) {
   // Hidden PDF-only container (white bg, watermark, date)
   const pdfRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+  const [room, setRoom] = useState<RoomResponse | null>(null);
 
   const isTeacher = role === 'teacher';
   const teacherWatermark = isTeacher
     ? 'TEACHER COPY'
     : `ROOM ${roomCode || ''}`.trim() || 'CLASSROOM';
+
+  // Fetch room data for multiplayer games to get teacher name
+  useEffect(() => {
+    if (isMultiplayer && roomCode) {
+      getRoom(roomCode)
+        .then(setRoom)
+        .catch((err) => console.error('Failed to fetch room:', err));
+    }
+  }, [isMultiplayer, roomCode]);
 
   const portfolioValue = useMemo(() => {
     if (!gameData) return player.cash;
@@ -281,6 +292,7 @@ const handleExportPDF = async () => {
             <div style={{ fontSize: 12, color: '#444' }}>
               Student: {player.playerName || 'Student'}
               {isMultiplayer && roomCode ? ` • Room: ${roomCode}` : ''}
+              {isMultiplayer && room?.created_by ? ` • Teacher: ${room.created_by}` : ''}
             </div>
             <div style={{ fontSize: 12, color: '#444' }}>
               Generated: {new Date().toLocaleString()}

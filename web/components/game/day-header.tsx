@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useGameStore } from '@/lib/stores/gameStore';
 import { formatDate } from '@/lib/utils/format';
 import { getRoom } from '@/lib/api/multiplayer';
 
 export function DayHeader() {
+  const router = useRouter();
   const {
     player,
     config,
@@ -98,12 +100,12 @@ export function DayHeader() {
                     {roomMode}
                   </span>
                 )}
-                <a
-                  href={`/multiplayer/leaderboard/${roomCode}`}
+                <button
+                  onClick={() => router.push(`/multiplayer/leaderboard/${roomCode}`)}
                   className="text-accent hover:underline"
                 >
                   View leaderboard
-                </a>
+                </button>
               </div>
             )}
           </div>

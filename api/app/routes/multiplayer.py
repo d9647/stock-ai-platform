@@ -380,7 +380,7 @@ async def advance_day(
     if room.status != "in_progress":
         raise HTTPException(status_code=400, detail=f"Game is not in progress (status: {room.status})")
 
-    # Advance to next day
+    # Advance to next day (calendar day, not trading day - matches solo game behavior)
     # room.current_day += 1
     if room.current_date is None:
         current_date_obj = datetime.fromisoformat(room.start_date).date()
@@ -388,7 +388,8 @@ async def advance_day(
         current_date_obj = datetime.fromisoformat(room.current_date).date()
 
     start_dt = datetime.fromisoformat(room.start_date).date()
-    current_date_obj = _next_trading_day(current_date_obj)
+    # Increment by 1 calendar day (includes weekends, matching solo game logic)
+    current_date_obj = current_date_obj + timedelta(days=1)
     room.current_date = current_date_obj.isoformat()
     room.current_day = (current_date_obj - start_dt).days
     room.day_started_at = datetime.utcnow()

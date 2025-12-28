@@ -58,11 +58,60 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
   }, [roomCode]);
 
   /* =====================================================
-     Sorting logic
+     Add AI benchmark and sort
      ===================================================== */
-  const sortedLeaderboard = useMemo(() => {
-    const data = [...leaderboard];
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'rank' ? 'asc' : 'desc');
+    }
+  };
 
+  // Add AI benchmark and sort everything together
+  const leaderboardWithAI: LeaderboardEntry[] = useMemo(() => {
+    if (!room) return leaderboard;
+
+    // Try to get AI performance from:
+    // 1. Room data (synced from backend by any player)
+    // 2. Local game store (if this player has played)
+    // 3. Initial cash (if no one has played yet)
+    let aiPortfolioValue = room.ai_portfolio_value;
+    let aiReturnPct = room.ai_total_return_pct;
+
+    // If backend has no AI data, try local store (for current player)
+    if (aiPortfolioValue == null || aiReturnPct == null) {
+      const gameState = useGameStore.getState();
+      if (gameState.gameData && gameState.ai.portfolioHistory.length > 0) {
+        // Use local AI data
+        const localAiValue = gameState.getAIPortfolioValue();
+        const initialCash = gameState.config.initialCash;
+        aiPortfolioValue = localAiValue;
+        aiReturnPct = ((localAiValue - initialCash) / initialCash) * 100;
+      } else {
+        // No AI data available yet
+        aiPortfolioValue = room.config.initialCash;
+        aiReturnPct = 0;
+      }
+    }
+
+    const aiEntry: LeaderboardEntry = {
+      rank: leaderboard.length + 1,
+      player_id: 'AI_BENCHMARK',
+      player_name: 'AI Agent',
+      score: 0,
+      grade: 'N/A',
+      portfolio_value: aiPortfolioValue,
+      total_return_pct: aiReturnPct,
+      current_day: room.ai_current_day ?? room.current_day,
+      is_finished: room.status === 'finished',
+    };
+
+    // Combine leaderboard with AI entry
+    const data = [...leaderboard, aiEntry];
+
+    // Sort the combined data
     data.sort((a, b) => {
       let av: number;
       let bv: number;
@@ -90,57 +139,7 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
     });
 
     return data;
-  }, [leaderboard, sortKey, sortDir]);
-
-  const toggleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
-      setSortDir(key === 'rank' ? 'asc' : 'desc');
-    }
-  };
-
-  // Append AI benchmark as a virtual entry (ranked last; no player_id collision)
-  const leaderboardWithAI: LeaderboardEntry[] = useMemo(() => {
-    if (!room) return sortedLeaderboard;
-
-    // Try to get AI performance from:
-    // 1. Room data (synced from backend by any player)
-    // 2. Local game store (if this player has played)
-    // 3. Initial cash (if no one has played yet)
-    let aiPortfolioValue = room.ai_portfolio_value;
-    let aiReturnPct = room.ai_total_return_pct;
-
-    // If backend has no AI data, try local store (for current player)
-    if (aiPortfolioValue == null || aiReturnPct == null) {
-      const gameState = useGameStore.getState();
-      if (gameState.gameData && gameState.ai.portfolioHistory.length > 0) {
-        // Use local AI data
-        const localAiValue = gameState.getAIPortfolioValue();
-        const initialCash = gameState.config.initialCash;
-        aiPortfolioValue = localAiValue;
-        aiReturnPct = ((localAiValue - initialCash) / initialCash) * 100;
-      } else {
-        // No AI data available yet
-        aiPortfolioValue = room.config.initialCash;
-        aiReturnPct = 0;
-      }
-    }
-
-    const aiEntry: LeaderboardEntry = {
-      rank: sortedLeaderboard.length + 1,
-      player_id: 'AI_BENCHMARK',
-      player_name: 'AI Agent',
-      score: 0,
-      grade: 'N/A',
-      portfolio_value: aiPortfolioValue,
-      total_return_pct: aiReturnPct,
-      current_day: room.ai_current_day ?? room.current_day,
-      is_finished: room.status === 'finished',
-    };
-    return [...sortedLeaderboard, aiEntry];
-  }, [sortedLeaderboard, room]);
+  }, [leaderboard, room, sortKey, sortDir]);
 
   const SortIcon = ({ active }: { active: boolean }) => (
     <span className={`ml-1 ${active ? 'text-text-primary' : 'text-text-muted'}`}>
@@ -217,18 +216,12 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
               Leaderboard
             </h1>
             <p className="text-text-muted text-sm mt-1">
-              Room {room.room_code} • {room.room_name || 'Classroom Game'}
+              Room {room.room_code} • {room.room_name || 'Classroom Game'} • Teacher: {room.created_by}
             </p>
           </div>
 
           <button
-            onClick={() => {
-              if (room?.room_code) {
-                router.push(`/multiplayer/room/${room.room_code}`);
-              } else {
-                router.back();
-              }
-            }}
+            onClick={() => router.back()}
             className="text-sm text-text-secondary hover:text-accent"
           >
             ← Back
@@ -238,93 +231,95 @@ export function LeaderboardView({ roomCode }: LeaderboardViewProps) {
 
       {/* Table */}
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className="bg-layer2 border border-borderDark-subtle rounded-md overflow-hidden">
-          {/* Sticky header */}
-          <div className="sticky top-0 z-10 bg-layer2 border-b border-borderDark-subtle">
-            <div className="grid grid-cols-7 gap-4 px-4 py-3 text-xs uppercase tracking-wide text-text-muted">
-              <button onClick={() => toggleSort('rank')} className="text-left">
-                Rank <SortIcon active={sortKey === 'rank'} />
-              </button>
-              <div className="col-span-2">Player</div>
-              <div>Day</div>
-              <button
-                onClick={() => toggleSort('score')}
-                className="text-right"
-              >
-                Score <SortIcon active={sortKey === 'score'} />
-              </button>
-              <button
-                onClick={() => toggleSort('portfolio')}
-                className="text-right"
-              >
-                Portfolio <SortIcon active={sortKey === 'portfolio'} />
-              </button>
-              <button
-                onClick={() => toggleSort('return')}
-                className="text-right"
-              >
-                Return <SortIcon active={sortKey === 'return'} />
-              </button>
-            </div>
-          </div>
-
-          {/* Rows */}
-          {leaderboardWithAI.map((entry) => {
-            const isCurrentUser =
-              currentPlayerName &&
-              entry.player_name === currentPlayerName;
-
-            return (
-              <div
-                key={entry.player_id}
-                className={`grid grid-cols-7 gap-4 px-4 py-4 border-b border-borderDark-subtle last:border-b-0 text-sm
-                ${isCurrentUser ? 'bg-layer3' : ''}`}
-              >
-                {/* Rank */}
-                <div className="text-text-muted">
-                  {entry.rank === 1
-                    ? '🥇'
-                    : entry.rank === 2
-                    ? '🥈'
-                    : entry.rank === 3
-                    ? '🥉'
-                    : `#${entry.rank}`}
-                </div>
-
-                {/* Player */}
-                <div className="col-span-2 font-medium text-text-primary">
-                  {entry.player_name}
-                </div>
-
-                {/* Day */}
-                <div className="text-text-secondary">
-                  {entry.current_day + 1}
-                </div>
-
-                {/* Score */}
-                <div className="text-right font-medium text-text-primary">
-                  {entry.score.toFixed(0)}
-                </div>
-
-                {/* Portfolio Value */}
-                <div className="text-right text-text-primary">
-                  ${entry.portfolio_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-
-                {/* Return */}
-                <div
-                  className={`text-right text-xs font-medium ${
-                    entry.total_return_pct >= 0
-                      ? 'text-success'
-                      : 'text-error'
-                  }`}
+        <div className="bg-layer2 border border-borderDark-subtle rounded-md overflow-x-auto">
+          <div className="min-w-[700px]">
+            {/* Sticky header */}
+            <div className="sticky top-0 z-10 bg-layer2 border-b border-borderDark-subtle">
+              <div className="grid grid-cols-7 gap-4 px-4 py-3 text-xs uppercase tracking-wide text-text-muted">
+                <button onClick={() => toggleSort('rank')} className="text-left">
+                  Rank <SortIcon active={sortKey === 'rank'} />
+                </button>
+                <div className="col-span-2">Player</div>
+                <div>Day</div>
+                <button
+                  onClick={() => toggleSort('score')}
+                  className="text-right"
                 >
-                  {entry.total_return_pct >= 0 ? '+' : ''}
-                  {entry.total_return_pct.toFixed(2)}%
-                </div>
+                  Score <SortIcon active={sortKey === 'score'} />
+                </button>
+                <button
+                  onClick={() => toggleSort('portfolio')}
+                  className="text-right"
+                >
+                  Portfolio <SortIcon active={sortKey === 'portfolio'} />
+                </button>
+                <button
+                  onClick={() => toggleSort('return')}
+                  className="text-right"
+                >
+                  Return <SortIcon active={sortKey === 'return'} />
+                </button>
               </div>
-            );
-          })}
+            </div>
+
+            {/* Rows */}
+            {leaderboardWithAI.map((entry) => {
+              const isCurrentUser =
+                currentPlayerName &&
+                entry.player_name === currentPlayerName;
+
+              return (
+                <div
+                  key={entry.player_id}
+                  className={`grid grid-cols-7 gap-4 px-4 py-4 border-b border-borderDark-subtle last:border-b-0 text-sm
+                  ${isCurrentUser ? 'bg-layer3' : ''}`}
+                >
+                  {/* Rank */}
+                  <div className="text-text-muted">
+                    {entry.rank === 1
+                      ? '🥇'
+                      : entry.rank === 2
+                      ? '🥈'
+                      : entry.rank === 3
+                      ? '🥉'
+                      : `#${entry.rank}`}
+                  </div>
+
+                  {/* Player */}
+                  <div className="col-span-2 font-medium text-text-primary truncate">
+                    {entry.player_name}
+                  </div>
+
+                  {/* Day */}
+                  <div className="text-text-secondary">
+                    {entry.current_day + 1}
+                  </div>
+
+                  {/* Score */}
+                  <div className="text-right font-medium text-text-primary">
+                    {entry.score.toFixed(0)}
+                  </div>
+
+                  {/* Portfolio Value */}
+                  <div className="text-right text-text-primary">
+                    ${entry.portfolio_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+
+                  {/* Return */}
+                  <div
+                    className={`text-right text-xs font-medium ${
+                      entry.total_return_pct >= 0
+                        ? 'text-success'
+                        : 'text-error'
+                    }`}
+                  >
+                    {entry.total_return_pct >= 0 ? '+' : ''}
+                    {entry.total_return_pct.toFixed(2)}%
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </main>
     </div>

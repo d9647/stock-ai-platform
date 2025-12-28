@@ -34,7 +34,7 @@ export function PlayerHoldings() {
       <div className="bg-layer1 rounded-lg shadow-soft p-6 border border-borderDark-subtle">
         <h2 className="text-xl font-bold text-text-primary mb-4">Your Holdings</h2>
         <p className="text-text-muted text-center py-8">
-          You don't own any stocks yet. You may optionally refer to AI recommendations: BUY or STRONG_BUY.
+          You don't own any stocks yet. 
         </p>
       </div>
     );

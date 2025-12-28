@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   getRoom,
@@ -33,6 +33,9 @@ function LobbySkeleton() {
   );
 }
 
+type SortKey = 'rank' | 'score' | 'return' | 'portfolio';
+type SortDir = 'asc' | 'desc';
+
 export function RoomLobby({ roomCode }: RoomLobbyProps) {
   const router = useRouter();
   const { startMultiplayerGame, role } = useGameStore();
@@ -45,6 +48,11 @@ export function RoomLobby({ roomCode }: RoomLobbyProps) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const [sortKey, setSortKey] = useState<SortKey>('rank');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const [showPlayers, setShowPlayers] = useState(true);
+
   const SHOW_LEADERBOARD = false;
   const SHOW_STATS = false;
 
@@ -54,6 +62,88 @@ export function RoomLobby({ roomCode }: RoomLobbyProps) {
       : null;
 
   const isTeacher = role === 'teacher';
+
+  /* =====================================================
+     Sorting logic for embedded leaderboard
+     ===================================================== */
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'rank' ? 'asc' : 'desc');
+    }
+  };
+
+  // Add AI benchmark and sort
+  const leaderboardWithAI: LeaderboardEntry[] = useMemo(() => {
+    if (!room) return leaderboard;
+
+    // Try to get AI performance from:
+    // 1. Room data (synced from backend by any player)
+    // 2. Initial cash (if no one has played yet)
+    let aiPortfolioValue = room.ai_portfolio_value;
+    let aiReturnPct = room.ai_total_return_pct;
+
+    // If backend has no AI data, use initial cash
+    if (aiPortfolioValue == null || aiReturnPct == null) {
+      aiPortfolioValue = room.config.initialCash;
+      aiReturnPct = 0;
+    }
+
+    const aiEntry: LeaderboardEntry = {
+      rank: leaderboard.length + 1,
+      player_id: 'AI_BENCHMARK',
+      player_name: 'AI Agent',
+      score: 0,
+      grade: 'N/A',
+      portfolio_value: aiPortfolioValue,
+      total_return_pct: aiReturnPct,
+      current_day: room.ai_current_day ?? room.current_day,
+      is_finished: room.status === 'finished',
+    };
+
+    // Combine leaderboard with AI entry
+    const data = [...leaderboard, aiEntry];
+
+    // Sort the combined data
+    data.sort((a, b) => {
+      let av: number;
+      let bv: number;
+
+      switch (sortKey) {
+        case 'score':
+          av = a.score;
+          bv = b.score;
+          break;
+        case 'return':
+          av = a.total_return_pct;
+          bv = b.total_return_pct;
+          break;
+        case 'portfolio':
+          av = a.portfolio_value;
+          bv = b.portfolio_value;
+          break;
+        case 'rank':
+        default:
+          av = a.rank;
+          bv = b.rank;
+      }
+
+      return sortDir === 'asc' ? av - bv : bv - av;
+    });
+
+    return data;
+  }, [leaderboard, room, sortKey, sortDir]);
+
+  const SortIcon = ({ active }: { active: boolean }) => {
+    if (!active) return null;
+    return (
+      <span className="ml-1 text-text-primary">
+        {sortDir === 'asc' ? '▲' : '▼'}
+      </span>
+    );
+  };
 
   /* ---------- Fetch room ---------- */
   const fetchRoomData = async () => {
@@ -224,7 +314,7 @@ export function RoomLobby({ roomCode }: RoomLobbyProps) {
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between">
           <div>
             <h1 className="text-lg font-semibold text-text-primary">
-              {room.room_name || 'Trading Game Lobby'}
+              {room.room_name || 'Game Control Room'}
             </h1>
             <p className="text-xs text-text-muted">
               Created by {room.created_by}
@@ -276,79 +366,142 @@ export function RoomLobby({ roomCode }: RoomLobbyProps) {
           </div>
         )}
 
-        {/* Game settings + players */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Game Settings */}
-          <div className="bg-layer2 border border-borderDark-subtle rounded-md p-6">
-            <h2 className="text-sm font-semibold text-text-primary mb-4">
-              Game Settings
+        {/* Players */}
+        <div className="bg-layer2 border border-borderDark-subtle rounded-md">
+          <button
+            onClick={() => setShowPlayers(!showPlayers)}
+            className="w-full flex items-center justify-between p-6 text-left"
+          >
+            <h2 className="text-sm font-semibold text-text-primary">
+              Players
             </h2>
-            <div className="space-y-2 text-sm text-text-secondary">
-              <div className="flex justify-between">
-                <span>Mode</span>
-                <span className="text-text-primary">{room.game_mode}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Cash</span>
-                <span className="text-text-primary">
-                  ${room.config.initialCash.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Duration</span>
-                <span className="text-text-primary">
-                  {room.config.numDays} days
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Difficulty</span>
-                <span className="text-text-primary capitalize">
-                  {room.config.difficulty}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Players */}
-          <div className="bg-layer2 border border-borderDark-subtle rounded-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-text-primary">
-                Players
-              </h2>
+            <div className="flex items-center gap-3">
               <span className="text-xs text-text-muted">
                 {room.players.length}
               </span>
+              <span className="text-text-muted text-lg">
+                {showPlayers ? '−' : '+'}
+              </span>
             </div>
+          </button>
 
-            {/* Scrollable list */}
-            <div className="max-h-72 overflow-y-auto pr-1">
-              <ul className="space-y-0.5 text-sm">
+          {showPlayers && (
+            <div className="px-6 pb-6">
+              {/* Compact wrapped layout */}
+              <div className="flex flex-wrap gap-2 max-h-72 overflow-y-auto pr-1">
                 {room.players.map((p) => {
                   const isMe = p.id === playerId;
+                  const isReady = p.is_ready;
 
                   return (
-                    <li
+                    <div
                       key={p.id}
-                      className={`px-2 py-1 flex items-center justify-between rounded-sm
-                        ${
-                          isMe
-                            ? 'bg-layer3 border border-borderDark-subtle'
-                            : 'hover:bg-layer1'
-                        }`}
+                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                        isMe
+                          ? 'bg-layer3 border-borderDark-subtle text-text-primary font-medium'
+                          : isReady
+                          ? 'bg-layer2 border-borderDark-subtle text-text-primary hover:text-text-primary'
+                          : 'bg-layer1 border-borderDark-subtle text-text-muted hover:text-text-secondary opacity-60'
+                      }`}
                     >
-                      <span className="text-text-primary truncate">
-                        {p.player_name}
-                        {isMe && (
-                          <span className="text-text-muted ml-2">(You)</span>
-                        )}
-                      </span>
-                    </li>
+                      {p.player_name}
+                      {isMe && (
+                        <span className="text-text-muted ml-1 text-xs">(You)</span>
+                      )}
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Embedded Leaderboard */}
+        {leaderboard.length > 0 && (
+          <div className="bg-layer2 border border-borderDark-subtle rounded-md p-6">
+            <h2 className="text-sm font-semibold text-text-primary mb-4">
+              Leaderboard
+            </h2>
+
+            <div className="overflow-x-auto">
+              <div className="min-w-[600px]">
+                {/* Header */}
+                <div className="grid grid-cols-6 gap-4 px-4 py-3 text-xs uppercase tracking-wide text-text-muted border-b border-borderDark-subtle">
+                  <button onClick={() => toggleSort('rank')} className="text-left">
+                    Rank <SortIcon active={sortKey === 'rank'} />
+                  </button>
+                  <div className="col-span-2">Player</div>
+                  <button onClick={() => toggleSort('score')} className="text-right">
+                    Score <SortIcon active={sortKey === 'score'} />
+                  </button>
+                  <button onClick={() => toggleSort('portfolio')} className="text-right">
+                    Portfolio <SortIcon active={sortKey === 'portfolio'} />
+                  </button>
+                  <button onClick={() => toggleSort('return')} className="text-right">
+                    Return <SortIcon active={sortKey === 'return'} />
+                  </button>
+                </div>
+
+                {/* Rows */}
+                <div className="max-h-96 overflow-y-auto">
+                  {leaderboardWithAI.map((entry) => {
+                    const isCurrentUser = entry.player_id === playerId;
+
+                    return (
+                      <div
+                        key={entry.player_id}
+                        className={`grid grid-cols-6 gap-4 px-4 py-3 border-b border-borderDark-subtle last:border-b-0 text-sm ${
+                          isCurrentUser ? 'bg-layer3' : ''
+                        }`}
+                      >
+                        {/* Rank */}
+                        <div className="text-text-muted">
+                          {entry.rank === 1
+                            ? '🥇'
+                            : entry.rank === 2
+                            ? '🥈'
+                            : entry.rank === 3
+                            ? '🥉'
+                            : `#${entry.rank}`}
+                        </div>
+
+                        {/* Player */}
+                        <div className="col-span-2 font-medium text-text-primary truncate">
+                          {entry.player_name}
+                        </div>
+
+                        {/* Score */}
+                        <div className="text-right font-medium text-text-primary">
+                          {entry.score.toFixed(0)}
+                        </div>
+
+                        {/* Portfolio Value */}
+                        <div className="text-right text-text-primary text-xs">
+                          ${entry.portfolio_value.toLocaleString('en-US', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                          })}
+                        </div>
+
+                        {/* Return */}
+                        <div
+                          className={`text-right text-xs font-medium ${
+                            entry.total_return_pct >= 0
+                              ? 'text-success'
+                              : 'text-error'
+                          }`}
+                        >
+                          {entry.total_return_pct >= 0 ? '+' : ''}
+                          {entry.total_return_pct.toFixed(2)}%
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Optional stats preserved */}
         {myEntry && SHOW_STATS && (

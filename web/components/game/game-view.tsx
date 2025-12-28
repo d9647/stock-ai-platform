@@ -24,6 +24,7 @@ export function GameView() {
     config.tickers[0]
   );
   const [room, setRoom] = useState<RoomResponse | null>(null);
+  const [showAllTickers, setShowAllTickers] = useState(false);
 
   const isTeacher = role === 'teacher';
 
@@ -73,17 +74,15 @@ export function GameView() {
       <DayHeader />
 
       {/* Multiplayer Banner */}
-      {isMultiplayer &&
-        roomCode &&
-        (room?.game_mode === 'sync' ||
-          room?.game_mode === 'sync_auto') && (
-          <SyncBanner
-            roomCode={roomCode}
-            playerId={player.playerId}
-            currentDay={player.currentDay}
-            gameMode={room?.game_mode}
-          />
-        )}
+      {isMultiplayer && roomCode && room && (
+        <SyncBanner
+          roomCode={roomCode}
+          playerId={player.playerId}
+          currentDay={player.currentDay}
+          gameMode={room.game_mode}
+          playerCount={room.player_count}
+        />
+      )}
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -91,20 +90,30 @@ export function GameView() {
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Ticker Selector */}
-            <div className="flex flex-wrap gap-2">
-              {config.tickers.map((ticker) => (
-                <button
-                  key={ticker}
-                  onClick={() => setSelectedTicker(ticker)}
-                  className={`px-4 py-2 text-sm font-mono transition-colors border ${
-                    selectedTicker === ticker
-                      ? 'bg-layer2 text-text-primary border-borderDark-subtle'
-                      : 'bg-layer1 text-text-muted border-borderDark-subtle hover:bg-layer2'
-                  }`}
-                >
-                  {ticker}
-                </button>
-              ))}
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                {(showAllTickers ? config.tickers : config.tickers.slice(0, 8)).map((ticker) => (
+                  <button
+                    key={ticker}
+                    onClick={() => setSelectedTicker(ticker)}
+                    className={`px-3 py-1.5 text-sm font-mono transition-colors border rounded-full ${
+                      selectedTicker === ticker
+                        ? 'bg-layer2 text-text-primary border-borderDark-subtle'
+                        : 'bg-layer1 text-text-muted border-borderDark-subtle hover:bg-layer2'
+                    }`}
+                  >
+                    {ticker}
+                  </button>
+                ))}
+                {config.tickers.length > 8 && (
+                  <button
+                    onClick={() => setShowAllTickers(!showAllTickers)}
+                    className="px-3 py-1.5 text-xs border border-borderDark-subtle text-text-muted hover:text-text-primary hover:bg-layer1 transition-colors rounded-full"
+                  >
+                    {showAllTickers ? '− Show less' : `+ ${config.tickers.length - 8} more`}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Chart */}
