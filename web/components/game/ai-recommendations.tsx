@@ -94,7 +94,7 @@ export function AIRecommendations() {
           AI Insights
         </h2>
         <div className="text-center py-8">
-          <div className="text-4xl mb-3">🏖️</div>
+          <div className="text-4xl mb-3"></div>
           <p className="text-text-primary font-medium">
             Markets closed (weekend)
           </p>

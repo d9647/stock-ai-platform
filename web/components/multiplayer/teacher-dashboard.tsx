@@ -160,15 +160,15 @@ export function TeacherDashboard({
             </div>
 
             {/* Timer Countdown */}
-            {roomState?.time_remaining !== undefined && roomState.time_remaining > 0 && (
+            {/*{roomState?.time_remaining !== undefined && roomState.time_remaining > 0 && (*/}
               <div className="flex items-center gap-2 px-3 py-1.5 bg-layer1 rounded-full border border-borderDark-subtle">
-                <span className="text-xs text-text-muted">Time:</span>
+                <span className="text-xs text-text-muted">Time Remaining:</span>
                 <span className="text-sm font-mono font-semibold text-text-primary">
                   {Math.floor(roomState.time_remaining / 60)}:
                   {String(roomState.time_remaining % 60).padStart(2, '0')}
                 </span>
               </div>
-            )}
+            {/*})}*/}
 
             {/* Timer Duration Setting */}
             <div className="flex items-center gap-2 px-3 py-1.5 bg-layer1 rounded-full border border-borderDark-subtle">
@@ -210,7 +210,7 @@ export function TeacherDashboard({
               disabled={loading}
               className="px-4 py-2 text-sm font-medium text-text-muted border border-borderDark-subtle rounded-full transition-colors hover:text-text-primary hover:bg-layer2"
             >
-              End Game
+              Quit
             </button>
           </div>
         </div>

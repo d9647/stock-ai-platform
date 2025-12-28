@@ -17,20 +17,21 @@ export function BuyModal({ ticker, onClose }: BuyModalProps) {
     return gameData.days[player.currentDay];
   }, [gameData, player.currentDay]);
 
-  const [shares, setShares] = useState(1);
+  const [shares, setShares] = useState<number | ''>(1);
 
   if (!currentDayData || !gameData) return null;
 
   const nextDayData = gameData.days[player.currentDay + 1];
   const executionPrice = nextDayData?.prices[ticker]?.open || 0;
-  const totalCost = shares * executionPrice;
-  const canAfford = totalCost <= player.cash;
+  const shareCount = shares === '' ? 0 : shares;
+  const totalCost = shareCount * executionPrice;
+  const canAfford = totalCost <= player.cash && shareCount > 0;
 
   const maxShares =
     executionPrice > 0 ? Math.floor(player.cash / executionPrice) : 0;
 
   const handleBuy = () => {
-    if (!canAfford) return;
+    if (!canAfford || shares === '') return;
     buy(ticker, shares);
     onClose();
   };
@@ -72,9 +73,22 @@ export function BuyModal({ ticker, onClose }: BuyModalProps) {
             min={1}
             max={maxShares}
             value={shares}
-            onChange={(e) =>
-              setShares(Math.max(1, parseInt(e.target.value) || 1))
-            }
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '') {
+                setShares('');
+              } else {
+                const num = parseInt(value);
+                if (!isNaN(num)) {
+                  setShares(Math.max(1, Math.min(num, maxShares)));
+                }
+              }
+            }}
+            onBlur={() => {
+              if (shares === '' || shares < 1) {
+                setShares(1);
+              }
+            }}
             className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary font-mono focus:outline-none focus:border-green-600"
           />
           <div className="text-xs text-text-muted mt-1">
@@ -99,7 +113,7 @@ export function BuyModal({ ticker, onClose }: BuyModalProps) {
         </div>
 
         {/* Error */}
-        {!canAfford && (
+        {!canAfford && shares !== '' && shareCount > 0 && (
           <div className="mb-4 p-3 border border-red-500/30 bg-red-500/10 text-red-400 text-sm rounded-md">
             Insufficient cash. You have {formatCurrency(player.cash)} available.
           </div>

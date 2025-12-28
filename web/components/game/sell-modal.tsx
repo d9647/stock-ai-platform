@@ -28,18 +28,20 @@ export function SellModal({ ticker, onClose }: SellModalProps) {
   }, [player.holdings, player.currentDay, gameData]);
 
   const holding = holdings.find((h) => h.ticker === ticker);
-  const [shares, setShares] = useState(holding?.shares || 1);
+  const [shares, setShares] = useState<number | ''>(holding?.shares || 1);
 
   if (!holding || !gameData) return null;
 
   const nextDayData = gameData.days[player.currentDay + 1];
   const executionPrice = nextDayData?.prices[ticker]?.open || 0;
 
-  const totalProceeds = shares * executionPrice;
-  const costBasis = shares * holding.avgCost;
+  const shareCount = shares === '' ? 0 : shares;
+  const totalProceeds = shareCount * executionPrice;
+  const costBasis = shareCount * holding.avgCost;
   const profit = totalProceeds - costBasis;
 
   const handleSell = () => {
+    if (shares === '' || shares < 1) return;
     sell(ticker, shares);
     onClose();
   };
@@ -97,14 +99,22 @@ export function SellModal({ ticker, onClose }: SellModalProps) {
             min={1}
             max={holding.shares}
             value={shares}
-            onChange={(e) =>
-              setShares(
-                Math.min(
-                  holding.shares,
-                  Math.max(1, parseInt(e.target.value) || 1)
-                )
-              )
-            }
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '') {
+                setShares('');
+              } else {
+                const num = parseInt(value);
+                if (!isNaN(num)) {
+                  setShares(Math.min(holding.shares, Math.max(1, num)));
+                }
+              }
+            }}
+            onBlur={() => {
+              if (shares === '' || shares < 1) {
+                setShares(1);
+              }
+            }}
             className="w-full px-3 py-2 bg-layer1 border border-borderDark-subtle text-text-primary font-mono focus:outline-none focus:border-red-600"
           />
 
