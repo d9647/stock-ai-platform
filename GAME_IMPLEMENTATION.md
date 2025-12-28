@@ -502,5 +502,323 @@ Students who play this game will learn:
 
 ---
 
-**Last Updated**: 2025-12-18
-**Next Review**: After initial testing
+## 🏫 Multiplayer Classroom Mode
+
+### Overview
+
+Multiplayer mode enables teachers to create game rooms where students compete on identical game scenarios with a live leaderboard. This creates an engaging classroom environment where students learn trading strategies while competing for the best portfolio performance.
+
+### Key Features
+
+**✅ Deterministic Gameplay**
+- All players in a room play the exact same game
+- Same start/end dates, tickers, and AI recommendations
+- Ensures fair competition
+
+**✅ Real-Time Leaderboard**
+- Automatically updates every 5 seconds
+- Ranks by score (same algorithm as solo mode)
+- Shows progress, grade, and returns
+
+**✅ Persistent State**
+- Player credentials stored in localStorage
+- Game state synced to backend after each day
+- Can close browser and resume later
+
+**✅ Three Game Modes**
+1. **Async Mode**: Students play at their own pace
+2. **Sync Manual**: Teacher manually advances each day for the entire class
+3. **Sync Auto**: Timer automatically advances days for synchronized play
+
+### Architecture
+
+**Backend Components**:
+- `multiplayer` schema in PostgreSQL
+- `game_rooms` table with auto-generated 6-character room codes
+- `players` table with complete game state storage
+- RESTful API endpoints for room management
+
+**Frontend Components**:
+- Create Room (teachers)
+- Join Room (students)
+- Room Lobby with live leaderboard
+- Sync Banner for real-time coordination
+- Teacher Dashboard for room control
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/multiplayer/rooms` | POST | Create new room (teacher) |
+| `/api/v1/multiplayer/rooms/join` | POST | Join existing room (student) |
+| `/api/v1/multiplayer/rooms/{code}` | GET | Get room details and players |
+| `/api/v1/multiplayer/rooms/{code}/leaderboard` | GET | Get ranked leaderboard |
+| `/api/v1/multiplayer/players/{id}` | PUT | Update player state after each day |
+| `/api/v1/multiplayer/rooms/{code}/start` | POST | Start game (teacher control) |
+| `/api/v1/multiplayer/rooms/{code}/advance-day` | POST | Advance all players (sync mode) |
+| `/api/v1/multiplayer/rooms/{code}/end-game` | POST | End game for all players |
+| `/api/v1/multiplayer/rooms/{code}/set-timer` | POST | Set day timer (sync auto mode) |
+| `/api/v1/multiplayer/players/{id}/ready` | POST | Mark player ready for next day |
+
+### User Flows
+
+**Teacher Flow**:
+1. Click "Create Classroom" on home page
+2. Enter name, optional room name, configure game settings
+3. Select game mode (async, sync manual, or sync auto)
+4. Click "Create Room" → generates room code (e.g., "ABC123")
+5. Share room code with students
+6. View leaderboard and monitor student progress
+7. (Sync modes) Control game progression via dashboard
+8. Students' scores update automatically as they play
+
+**Student Flow**:
+1. Click "Join Classroom" on home page
+2. Enter room code from teacher
+3. Enter name (and optional email)
+4. Click "Join Room" → enters room lobby
+5. View current rank and leaderboard
+6. Click "Start Playing" or "Continue Game"
+7. Play game normally - state syncs automatically
+8. (Sync modes) Wait for teacher to advance days
+9. Check leaderboard to see ranking vs classmates
+
+### Game Modes Explained
+
+**Async Mode**:
+- Students progress independently at their own pace
+- No teacher control over day advancement
+- Perfect for homework assignments or flexible classroom activities
+- Students can work ahead or catch up as needed
+- Leaderboard updates as students complete days
+
+**Sync Manual Mode**:
+- Teacher manually advances all players to next day
+- Entire class experiences each trading day together
+- Great for guided instruction and group discussions
+- Teacher controls pacing based on classroom needs
+- "Ready" system shows which students finished trading
+
+**Sync Auto Mode**:
+- Timer automatically advances to next day
+- Teacher sets duration (e.g., 5 minutes per trading day)
+- Creates time pressure and excitement
+- Countdown timer visible to all students
+- Automatic advancement when timer expires
+
+### Leaderboard Features
+
+**Display Information**:
+- Rank (with medals for top 3: 🥇🥈🥉)
+- Player name with "You" badge for current player
+- Portfolio value
+- Total return percentage
+- Score and grade
+- Current day / total days
+- "Finished" badge for completed players
+- AI Agent benchmark for comparison
+
+**Sorting Options**:
+- By score (default)
+- By portfolio value
+- By return percentage
+- By progress (current day)
+
+**Real-Time Updates**:
+- Polls server every 5 seconds
+- Instant rank changes when players advance
+- Color-coded performance (green for gains, red for losses)
+
+### Teacher Dashboard
+
+**Game Control**:
+- View all players in room
+- See who's finished vs still playing
+- Monitor day-by-day progress
+- (Sync modes) Control day advancement
+- Set timers for auto-advance
+- End game for all players
+
+**Analytics**:
+- Room status (waiting, in_progress, finished)
+- Player count and participation
+- Average score and grade distribution
+- AI benchmark comparison
+- Ready player counter (sync manual mode)
+
+### Database Schema
+
+**game_rooms Table**:
+```sql
+- id (UUID, primary key)
+- room_code (6-char string, unique)
+- created_by (teacher name)
+- room_name (optional)
+- config (JSON: initial_cash, num_days, tickers, difficulty)
+- start_date, end_date (game date range)
+- status (waiting, in_progress, finished)
+- game_mode (async, sync, sync_auto)
+- current_day (sync modes only)
+- day_time_limit (seconds, sync auto mode)
+- created_at, started_at, finished_at
+```
+
+**players Table**:
+```sql
+- id (UUID, primary key)
+- room_id (foreign key to game_rooms)
+- player_name
+- player_email (optional)
+- current_day
+- cash, holdings (JSON)
+- portfolio_value
+- total_return_pct, total_return_usd
+- score, grade
+- is_ready (sync modes)
+- is_finished
+- portfolio_history (JSON array)
+- joined_at, last_action_at
+```
+
+### State Synchronization
+
+After each day advancement:
+1. Frontend calculates new portfolio state
+2. Calculates updated score and grade
+3. PUTs complete state to backend
+4. Backend updates player record
+5. Leaderboard recalculates rankings
+6. Other students see updated leaderboard on next poll
+
+### Files Created/Modified
+
+**Backend Files**:
+- `api/app/models/multiplayer.py` - SQLAlchemy models
+- `api/app/routes/multiplayer.py` - API endpoints
+- `api/app/schemas/multiplayer.py` - Pydantic schemas
+- `api/migrations/versions/*_add_multiplayer_schema.py` - Database migration
+
+**Frontend Files**:
+- `web/lib/api/multiplayer.ts` - API client
+- `web/components/multiplayer/create-room.tsx` - Teacher setup
+- `web/components/multiplayer/join-room.tsx` - Student join
+- `web/components/multiplayer/room-lobby.tsx` - Lobby with leaderboard
+- `web/components/multiplayer/leaderboard.tsx` - Full leaderboard page
+- `web/components/multiplayer/teacher-dashboard.tsx` - Teacher controls
+- `web/components/game/sync-banner.tsx` - Sync mode coordination
+- `web/app/multiplayer/create/page.tsx` - Create room page
+- `web/app/multiplayer/join/page.tsx` - Join room page
+- `web/app/multiplayer/room/[code]/page.tsx` - Room lobby page
+- `web/app/multiplayer/leaderboard/[code]/page.tsx` - Full leaderboard
+
+**Store Updates**:
+- `web/lib/stores/gameStore.ts` - Added multiplayer state and actions
+
+### Testing Multiplayer
+
+**Backend Testing**:
+```bash
+# Create room
+curl -X POST http://localhost:8000/api/v1/multiplayer/rooms \
+  -H "Content-Type: application/json" \
+  -d '{"created_by":"Test Teacher","room_name":"Demo Room"}'
+
+# Join room
+curl -X POST http://localhost:8000/api/v1/multiplayer/rooms/join \
+  -H "Content-Type: application/json" \
+  -d '{"room_code":"ABC123","player_name":"Student 1"}'
+
+# Get leaderboard
+curl http://localhost:8000/api/v1/multiplayer/rooms/ABC123/leaderboard
+```
+
+**Frontend Testing**:
+1. Open browser at http://localhost:3000
+2. Click "Create Classroom"
+3. Create room with specific settings
+4. Copy room code
+5. Open incognito window
+6. Click "Join Classroom"
+7. Enter room code as different student
+8. Both windows should see leaderboard
+9. Students play and advance
+10. Leaderboard updates automatically
+
+### Educational Benefits
+
+**Motivation Through Competition**:
+- Students naturally motivated to improve their rank
+- Peer comparison encourages strategic thinking
+- Friendly competition makes learning engaging
+
+**Collaborative Learning**:
+- Students can discuss strategies between days (async mode)
+- Teacher can pause and facilitate group discussions (sync modes)
+- Students learn from observing different approaches
+
+**Accountability**:
+- Visible progress tracking encourages completion
+- Teacher can monitor who needs help
+- "Ready" system shows engagement level
+
+**Fair Assessment**:
+- Identical game data ensures fairness
+- AI benchmark provides objective standard
+- Score breakdown reveals strategic decisions
+
+### Privacy and Security
+
+**Minimal Data Collection**:
+- No authentication required
+- Optional email (for notifications only)
+- No sensitive personal information stored
+
+**Room Code Security**:
+- 6-character codes provide 2.2 billion combinations
+- Rooms expire after completion
+- No public room listing (must know code to join)
+
+**Data Lifecycle**:
+- Room data persists for grading purposes
+- Teacher can export results
+- Optional data retention policies
+
+### Scalability
+
+**Database Design**:
+- Indexed room codes for fast lookups
+- Player state updates are atomic
+- Leaderboard queries optimized with SQL ranking
+
+**API Performance**:
+- Stateless endpoints for horizontal scaling
+- Efficient JSON payloads
+- Caching opportunities for room data
+
+**Frontend Efficiency**:
+- 5-second polling interval balances freshness and load
+- Only fetches diff data where possible
+- localStorage caching for player credentials
+
+### Future Enhancements
+
+**Planned Features**:
+- WebSocket support for instant updates
+- Room analytics dashboard for teachers
+- Custom ticker selection per room
+- Time limits and deadlines
+- Achievement badges
+- CSV export for gradebook integration
+- In-room chat/discussions
+- Replay mode to watch any player's game
+
+**Integration Possibilities**:
+- LMS integration (Canvas, Blackboard, Moodle)
+- Single sign-on (SSO)
+- Grade passback
+- Attendance tracking
+
+---
+
+**Last Updated**: 2025-12-28
+**Next Review**: After multiplayer testing in classroom environment
