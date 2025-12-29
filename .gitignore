@@ -104,4 +104,4 @@ tmp/
 temp/
 *.tmp
 
-scripts/run*.sh
+run*.sh
