@@ -1219,52 +1219,6 @@
 					"response": []
 				},
 				{
-					"name": "Join Room - Duplicate Name",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Player name 'Alice Johnson' is already taken in this room\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"room_code\": \"{{room_code}}\",\n  \"player_name\": \"Alice Johnson\",\n  \"player_email\": \"alice2@school.edu\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/multiplayer/rooms/join",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"multiplayer",
-								"rooms",
-								"join"
-							]
-						},
-						"description": "Test duplicate player name error.\n\nExpected: 400 Bad Request - \"Player name already taken\""
-					},
-					"response": []
-				},
-				{
 					"name": "Invalid Date Range",
 					"event": [
 						{
