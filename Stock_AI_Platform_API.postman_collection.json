@@ -826,7 +826,7 @@
 							"script": {
 								"exec": [
 									"pm.sendRequest({",
-									"    url: pm.environment.get(\"baseUrl\") + \"/api/v1/multiplayer/rooms\",",
+									"    url: pm.environment.get(\"base_url\") + \"/api/v1/multiplayer/rooms\",",
 									"    method: \"POST\",",
 									"    header: \"Content-Type: application/json\",",
 									"    body: { \"created_by\": \"Ms. Johnson\",",
