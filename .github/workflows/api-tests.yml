@@ -124,8 +124,14 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stockai_dev
         run: |
           cd api
-          # Run migrations if you have them
-          # alembic upgrade head || true
+          alembic upgrade head || echo "No migrations to run"
+
+      - name: Seed test data
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stockai_dev
+        run: |
+          cd api
+          python scripts/seed_test_data.py
 
       - name: Start API server in background
         env:
