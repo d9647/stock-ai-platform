@@ -68,20 +68,25 @@ def seed_test_data():
                 is_weekend = current_date.weekday() >= 5
 
                 recommendation = StockRecommendation(
+                    recommendation_id=f"test-{ticker}-{current_date.isoformat()}",
                     ticker=ticker,
                     as_of_date=current_date,
-                    action="HOLD" if is_weekend else "BUY",
+                    recommendation="HOLD" if is_weekend else "BUY",
                     confidence=0.65 if not is_weekend else 1.0,
                     technical_signal="NEUTRAL" if is_weekend else "BULLISH",
                     sentiment_signal="NEUTRAL" if is_weekend else "BULLISH",
                     risk_level="LOW_RISK" if is_weekend else "MEDIUM_RISK",
-                    rationale_summary="Markets are closed. No trading available." if is_weekend else f"Sample recommendation for {ticker}",
-                    rationale_technical_view=[] if is_weekend else [f"Technical indicator for {ticker}"],
-                    rationale_sentiment_view=[] if is_weekend else [f"Sentiment indicator for {ticker}"],
-                    rationale_risk_view=[] if is_weekend else [f"Risk indicator for {ticker}"],
-                    target_price=150.0 + (day * 0.5),
-                    stop_loss=140.0,
-                    version="1.0.0-test"
+                    rationale={
+                        "summary": "Markets are closed. No trading available." if is_weekend else f"Sample recommendation for {ticker}",
+                        "technical_view": [] if is_weekend else [f"Technical indicator for {ticker}"],
+                        "sentiment_view": [] if is_weekend else [f"Sentiment indicator for {ticker}"],
+                        "risk_view": [] if is_weekend else [f"Risk indicator for {ticker}"]
+                    },
+                    position_size="MEDIUM" if not is_weekend else "NONE",
+                    time_horizon="1-3 months",
+                    agent_outputs={},
+                    feature_snapshot_id=f"test-snapshot-{current_date.isoformat()}",
+                    model_version="1.0.0-test"
                 )
                 db.add(recommendation)
                 recommendations_count += 1
