@@ -109,8 +109,8 @@ def seed_test_data():
                     content=f"Sample content for {ticker}. This is a test article.",
                     source="TestSource",
                     published_at=datetime.combine(current_date, datetime.min.time()),
-                    sentiment_score=0.5,
-                    url=f"https://example.com/{ticker}/{current_date}"
+                    url=f"https://example.com/{ticker}/{current_date}",
+                    author="Test Author"
                 )
                 db.add(article)
                 news_count += 1
@@ -136,8 +136,7 @@ def seed_test_data():
                     positive_count=3,
                     negative_count=1,
                     neutral_count=1,
-                    top_themes=["earnings", "technology", "market"],
-                    sentiment_trend="stable"
+                    top_themes=["earnings", "technology", "market"]
                 )
                 db.add(sentiment)
                 sentiment_count += 1

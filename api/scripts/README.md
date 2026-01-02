@@ -53,12 +53,13 @@ This script is automatically run in GitHub Actions workflows:
 
 **News Articles**:
 - Sample headlines and content
-- Sentiment scores around 0.5 (neutral)
-- Test source URLs
+- Test source and author
+- Test URLs
 
 **Sentiment Aggregates**:
-- Average sentiment: 0.5
-- Article counts: 5 per day
+- Average sentiment: 0.5 (neutral)
+- Weighted sentiment: 0.5
+- Article counts: 5 per day (3 positive, 1 negative, 1 neutral)
 - Top themes: earnings, technology, market
 
 ### Exit Codes
