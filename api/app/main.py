@@ -28,7 +28,13 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"API docs available at: http://localhost:{settings.API_PORT}/docs")
-    start_scheduler()
+
+    # Only start scheduler if not disabled (e.g., in tests/CI)
+    import os
+    if os.getenv("DISABLE_SCHEDULER", "false").lower() != "true":
+        start_scheduler()
+    else:
+        logger.info("Scheduler disabled via DISABLE_SCHEDULER env var")
 
     yield
 
