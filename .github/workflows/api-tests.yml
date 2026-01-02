@@ -1,0 +1,181 @@
+name: API Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  pytest-tests:
+    name: Run pytest Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: stock_ai_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            api/venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('api/requirements.txt', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          cd api
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio httpx
+          pip install -r requirements.txt || true
+
+      - name: Run pytest
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stock_ai_test
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stock_ai_test
+        run: |
+          cd api
+          pytest tests/ -v --tb=short
+
+  postman-tests:
+    name: Run Postman/Newman API Tests
+    runs-on: ubuntu-latest
+    needs: pytest-tests  # Run after pytest passes
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: stockai_dev
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          cd api
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+
+      - name: Set up Node.js for Newman
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Newman
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stockai_dev
+        run: |
+          cd api
+          # Run migrations if you have them
+          # alembic upgrade head || true
+
+      - name: Start API server in background
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stockai_dev
+        run: |
+          cd api
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          echo $! > api_server.pid
+
+          # Wait for server to be ready
+          echo "Waiting for API server to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/ > /dev/null 2>&1; then
+              echo "API server is ready!"
+              break
+            fi
+            echo "Attempt $i: Server not ready yet..."
+            sleep 2
+          done
+
+          # Final check
+          curl http://localhost:8000/ || exit 1
+
+      - name: Run Newman tests
+        run: |
+          newman run Stock_AI_Platform_API.postman_collection.json \
+            --env-var "base_url=http://localhost:8000" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export newman-report.html \
+            --reporter-htmlextra-title "Stock AI Platform API Tests" \
+            --bail \
+            --timeout-request 10000
+
+      - name: Upload Newman HTML Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-test-report
+          path: newman-report.html
+
+      - name: Stop API server
+        if: always()
+        run: |
+          if [ -f api_server.pid ]; then
+            kill $(cat api_server.pid) || true
+          fi
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [pytest-tests, postman-tests]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "✅ pytest tests: ${{ needs.pytest-tests.result }}"
+          echo "✅ Postman/Newman tests: ${{ needs.postman-tests.result }}"
+
+          if [[ "${{ needs.pytest-tests.result }}" == "success" ]] && \
+             [[ "${{ needs.postman-tests.result }}" == "success" ]]; then
+            echo "🎉 All tests passed!"
+            exit 0
+          else
+            echo "❌ Some tests failed"
+            exit 1
+          fi
