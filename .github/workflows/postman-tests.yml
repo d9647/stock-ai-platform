@@ -67,7 +67,15 @@ jobs:
           npm install -g newman-reporter-htmlextra
           newman --version
 
-      # 6. Create .env file for API
+      # 6. Run database migrations
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stockai_dev
+        run: |
+          cd api
+          alembic upgrade head || echo "No migrations to run"
+
+      # 7. Create .env file for API
       - name: Create .env file
         run: |
           cat > api/.env << EOF
@@ -80,7 +88,7 @@ jobs:
           CORS_ORIGINS=["http://localhost:3000"]
           EOF
 
-      # 7. Start API server
+      # 8. Start API server
       - name: Start API server
         run: |
           cd api
@@ -104,7 +112,7 @@ jobs:
             sleep 1
           done
 
-      # 8. Run Newman tests
+      # 9. Run Newman tests
       - name: Run Newman collection
         id: newman
         run: |
@@ -121,14 +129,14 @@ jobs:
             --color on
         continue-on-error: true
 
-      # 9. Display server logs if tests fail
+      # 10. Display server logs if tests fail
       - name: Display server logs on failure
         if: failure()
         run: |
           echo "=== API Server Logs ==="
           cat api/server.log || echo "No server logs found"
 
-      # 10. Upload test reports
+      # 11. Upload test reports
       - name: Upload Newman HTML report
         if: always()
         uses: actions/upload-artifact@v4
@@ -145,7 +153,7 @@ jobs:
           path: reports/newman-report.json
           retention-days: 30
 
-      # 11. Parse and comment test results (for PRs)
+      # 12. Parse and comment test results (for PRs)
       - name: Comment PR with test results
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v6
@@ -191,7 +199,7 @@ jobs:
               console.log('Could not parse Newman report:', error);
             }
 
-      # 12. Stop API server
+      # 13. Stop API server
       - name: Stop API server
         if: always()
         run: |
@@ -200,7 +208,7 @@ jobs:
             rm api/server.pid
           fi
 
-      # 13. Fail workflow if tests failed
+      # 14. Fail workflow if tests failed
       - name: Check test results
         if: steps.newman.outcome == 'failure'
         run: |

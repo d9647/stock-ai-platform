@@ -52,6 +52,13 @@ jobs:
           pip install pytest pytest-asyncio httpx
           pip install -r requirements.txt || true
 
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stock_ai_test
+        run: |
+          cd api
+          alembic upgrade head || echo "No migrations to run"
+
       - name: Run pytest
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stock_ai_test
@@ -94,6 +101,13 @@ jobs:
           cd api
           python -m pip install --upgrade pip
           pip install -r requirements.txt || true
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/stockai_dev
+        run: |
+          cd api
+          alembic upgrade head || echo "No migrations to run"
 
       - name: Set up Node.js for Newman
         uses: actions/setup-node@v4
