@@ -3,7 +3,7 @@ Seed minimal test data for CI/testing environments.
 Creates just enough data to pass API tests without running full pipelines.
 """
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 import os
 import sys
@@ -28,6 +28,14 @@ def seed_test_data():
     db = SessionLocal()
 
     try:
+        # Create schemas first (if they don't exist)
+        print("Creating schemas...")
+        schemas = ['market_data', 'news', 'agents', 'features', 'multiplayer']
+        for schema in schemas:
+            db.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+        db.commit()
+        print("✓ Schemas created/verified")
+
         # Create tables if they don't exist
         Base.metadata.create_all(bind=engine)
         print("✓ Tables created/verified")
