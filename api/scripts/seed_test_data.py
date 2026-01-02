@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.db import Base
-from app.models.recommendations import StockRecommendation
+from app.models.agents import StockRecommendation
 from app.models.news import NewsArticle, DailySentimentAggregate
 
 
