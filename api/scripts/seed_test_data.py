@@ -69,7 +69,7 @@ def seed_test_data():
 
                 recommendation = StockRecommendation(
                     ticker=ticker,
-                    recommendation_date=current_date,
+                    as_of_date=current_date,
                     action="HOLD" if is_weekend else "BUY",
                     confidence=0.65 if not is_weekend else 1.0,
                     technical_signal="NEUTRAL" if is_weekend else "BULLISH",
