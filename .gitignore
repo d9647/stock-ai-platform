@@ -104,4 +104,8 @@ tmp/
 temp/
 *.tmp
 
-run*.sh
+run-*.sh
+archive/
+archive/*
+docs/archive/
+docs/archive/*

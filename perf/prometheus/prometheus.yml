@@ -1,0 +1,35 @@
+# Prometheus configuration for Stock AI Platform performance testing
+# Backend is single source of truth - metrics reflect actual backend behavior
+
+global:
+  scrape_interval: 15s      # How frequently to scrape targets
+  evaluation_interval: 15s  # How frequently to evaluate rules
+  external_labels:
+    cluster: 'stockai-perf'
+    environment: 'test'
+
+# Scrape configuration
+scrape_configs:
+  # FastAPI backend metrics (via prometheus-fastapi-instrumentator)
+  - job_name: 'stockai-api'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # Your API server
+        labels:
+          app: 'stock-ai-platform'
+          component: 'backend'
+    metrics_path: '/metrics'  # Exposed by prometheus-fastapi-instrumentator
+    scrape_interval: 5s       # More frequent for backend metrics
+
+# Recording rules for SLO calculations
+# These pre-compute percentiles to reduce dashboard query load
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Remote Write Receiver enabled via --web.enable-remote-write-receiver flag
+# K6 sends metrics directly to http://localhost:9090/api/v1/write
+
+# Alerting configuration (optional - can be added later)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']

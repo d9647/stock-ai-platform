@@ -102,7 +102,7 @@ pnpm dev
 
 Visit http://localhost:3000 to play!
 
-**For detailed setup instructions**, see [GETTING_STARTED.md](GETTING_STARTED.md)
+**For detailed setup instructions**, see [docs/guides/GETTING_STARTED.md](docs/guides/GETTING_STARTED.md)
 
 ---
 
@@ -131,7 +131,7 @@ Visit http://localhost:3000 to play!
 2. Enter room code
 3. Compete on leaderboard with classmates
 
-**For complete game documentation**, see [GAME_IMPLEMENTATION.md](GAME_IMPLEMENTATION.md)
+**For complete game documentation**, see [docs/guides/GAME_IMPLEMENTATION.md](docs/guides/GAME_IMPLEMENTATION.md)
 
 ---
 
@@ -184,13 +184,19 @@ Your grade (A-F) is based on:
 - Polygon.io (market data)
 - Finnhub & NewsAPI (news data)
 
-## Documentation
+## 📚 Documentation
 
-- **[GETTING_STARTED.md](GETTING_STARTED.md)** - Detailed setup and getting started guide
-- **[GAME_IMPLEMENTATION.md](GAME_IMPLEMENTATION.md)** - Complete game design and multiplayer mode
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment to Replit & Vercel
-- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Technical architecture overview
-- **[TESTING.md](TESTING.md)** - Testing guide and best practices
+**See [docs/](docs/) for complete documentation.**
+
+**Quick Links**:
+- **[docs/QUICKSTART.md](docs/QUICKSTART.md)** - 10-minute quick start
+- **[docs/guides/GETTING_STARTED.md](docs/guides/GETTING_STARTED.md)** - Detailed setup guide
+- **[docs/guides/GAME_IMPLEMENTATION.md](docs/guides/GAME_IMPLEMENTATION.md)** - Game mechanics & multiplayer
+- **[docs/api-testing/](docs/api-testing/)** - Postman collection & API testing
+- **[docs/deployment/](docs/deployment/)** - Deployment & CI/CD guides
+- **[perf/](perf/)** - Performance testing with K6 & Grafana
+- **[docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)** - Technical architecture
+- **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Common issues & solutions
 
 ## Development Status
 

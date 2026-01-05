@@ -1,0 +1,7 @@
+# Ignore all K6 test results#\
+# *.json
+*.html
+*.csv
+
+# But keep this directory
+!.gitignore

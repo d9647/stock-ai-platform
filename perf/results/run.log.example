@@ -1,0 +1,120 @@
+
+wdng@Wees-MacBook-Air perf % ./run-test.sh
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: multiplayer-load.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 30 max VUs, 7m30s max duration (incl. graceful stop):
+              * default: Up to 30 looping VUs for 7m0s over 6 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+INFO[0000] Creating test game room...                    source=console
+INFO[0000] ✓ Game room created: JRTPTE                   source=console
+INFO[0000]   - Room ID: a904ce02-285a-4a53-a9b0-6fd6ed3f57f2  source=console
+INFO[0000]   - Config: {"initialCash":100000,"numDays":30,"tickers":["AAPL","MSFT","GOOGL","AMZN"],"difficulty":"medium"}  source=console
+WARN[0081] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/b5af8026-2f38-4a55-ad09-3fd41dcd337d\": read tcp 127.0.0.1:51564->127.0.0.1:8000: read: connection reset by peer"
+WARN[0105] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/a146fc22-7f90-49d3-8284-b8ae3d69b60a\": read tcp 127.0.0.1:51586->127.0.0.1:8000: read: connection reset by peer"
+WARN[0113] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/678458fb-83a5-46d4-8b8e-3cf2b278b5da\": read tcp 127.0.0.1:51559->127.0.0.1:8000: read: connection reset by peer"
+WARN[0129] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/e9ea32e3-8003-4c23-bd1b-500a38ac123e\": read tcp 127.0.0.1:51548->127.0.0.1:8000: read: connection reset by peer"
+WARN[0134] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/b00ea8ea-3ac9-4eef-b37e-639fa4a0f016\": read tcp 127.0.0.1:51598->127.0.0.1:8000: read: connection reset by peer"
+WARN[0139] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/2c754baf-61e0-4d02-a3b1-7d4a70a3f040\": read tcp 127.0.0.1:51599->127.0.0.1:8000: read: connection reset by peer"
+WARN[0147] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/936c5be6-5068-49d2-9b26-87a7d6331169\": read tcp 127.0.0.1:51592->127.0.0.1:8000: read: connection reset by peer"
+WARN[0162] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/6fcdac61-1c60-4c4b-bc7b-e62684866496\": read tcp 127.0.0.1:51632->127.0.0.1:8000: read: connection reset by peer"
+WARN[0170] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/696ade5a-a4aa-427e-9cfe-6929c3355977\": read tcp 127.0.0.1:51637->127.0.0.1:8000: read: connection reset by peer"
+WARN[0180] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/9b2114c7-0649-408b-9c7b-418cba88ef2b\": read tcp 127.0.0.1:51643->127.0.0.1:8000: read: connection reset by peer"
+WARN[0188] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/27613fe3-6365-4f80-8a95-496b55978b32\": read tcp 127.0.0.1:51647->127.0.0.1:8000: read: connection reset by peer"
+WARN[0236] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/0e3923f1-8169-4f25-996b-6361061f5e8c\": read tcp 127.0.0.1:51678->127.0.0.1:8000: read: connection reset by peer"
+WARN[0250] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/9e92c632-c1e4-4010-a91b-51111b4d625c\": read tcp 127.0.0.1:51734->127.0.0.1:8000: read: connection reset by peer"
+WARN[0260] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/90f16727-e86d-4dd7-9000-6ed037258be3\": read tcp 127.0.0.1:51664->127.0.0.1:8000: read: connection reset by peer"
+WARN[0310] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/6fcdac61-1c60-4c4b-bc7b-e62684866496\": read tcp 127.0.0.1:51809->127.0.0.1:8000: read: connection reset by peer"
+WARN[0327] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/e6c4c3d7-8f17-4204-a3e6-aac457949c2b\": read tcp 127.0.0.1:51653->127.0.0.1:8000: read: connection reset by peer"
+WARN[0352] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/451e40ac-ffe8-482e-a6e8-ed07e635e145\": read tcp 127.0.0.1:51657->127.0.0.1:8000: read: connection reset by peer"
+WARN[0363] Request Failed                                error="Put \"http://localhost:8000/api/v1/multiplayer/players/9e92c632-c1e4-4010-a91b-51111b4d625c\": read tcp 127.0.0.1:51776->127.0.0.1:8000: read: connection reset by peer"
+INFO[0435] 
+✓ Performance test completed for room: JRTPTE  source=console
+INFO[0435] Check k6 metrics for detailed results.        source=console
+     ✓ join room: status 200
+     ✓ join room: has player_id
+     ✓ get state: status 200
+     ✓ get state: has room_code
+     ✓ leaderboard: status 200
+     ✓ leaderboard: is array
+     ✓ get news: status 200
+     ✓ get news: is array
+     ✓ get recommendations: status 200
+     ✓ get recommendations: has data
+     ✓ get game data: status 200
+     ✓ get game data: has tickers
+     ✗ update player: status 200
+      ↳  96% — ✓ 513 / ✗ 18
+     ✗ update player: has updated data
+      ↳  96% — ✓ 513 / ✗ 18
+
+     █ setup
+
+       ✓ room created successfully
+
+     api_errors.....................: 18      0.041392/s
+     checks.........................: 99.45%  ✓ 6517     ✗ 36  
+     data_received..................: 1.1 GB  2.5 MB/s
+     data_sent......................: 723 kB  1.7 kB/s
+   ✗ get_game_data_latency..........: avg=1183.024482 min=354    med=942      max=4443     p(90)=2300    p(95)=2920   
+   ✗ get_news_latency...............: avg=800.627119  min=3      med=394      max=4834     p(90)=2181    p(95)=2693   
+   ✗ get_recommendations_latency....: avg=708.376648  min=4      med=259      max=4309     p(90)=2093    p(95)=2446.5 
+   ✗ get_state_latency..............: avg=233.998217  min=3      med=24       max=4707     p(90)=656     p(95)=1570   
+     http_req_blocked...............: avg=30.03µs     min=0s     med=5µs      max=12.43ms  p(90)=20µs    p(95)=54.89µs
+     http_req_connecting............: avg=17.61µs     min=0s     med=0s       max=12.38ms  p(90)=0s      p(95)=0s     
+   ✗ http_req_duration..............: avg=574.58ms    min=346µs  med=107.17ms max=4.83s    p(90)=1.77s   p(95)=2.27s  
+       { expected_response:true }...: avg=574.84ms    min=346µs  med=105.55ms max=4.83s    p(90)=1.77s   p(95)=2.28s  
+   ✓ http_req_failed................: 0.47%   ✓ 18       ✗ 3790
+     http_req_receiving.............: avg=30.94ms     min=0s     med=62µs     max=2.97s    p(90)=840.3µs p(95)=2.29ms 
+     http_req_sending...............: avg=134.29µs    min=2µs    med=18µs     max=393.89ms p(90)=57µs    p(95)=73µs   
+     http_req_tls_handshaking.......: avg=0s          min=0s     med=0s       max=0s       p(90)=0s      p(95)=0s     
+     http_req_waiting...............: avg=543.51ms    min=325µs  med=107.13ms max=4.83s    p(90)=1.68s   p(95)=2.14s  
+     http_reqs......................: 3808    8.756787/s
+     iteration_duration.............: avg=16.8s       min=11.51s med=16.75s   max=24.07s   p(90)=20.11s  p(95)=21.46s 
+     iterations.....................: 531     1.221075/s
+   ✗ join_room_latency..............: avg=279.566667  min=12     med=37.5     max=2151     p(90)=900.3   p(95)=1168.45
+   ✓ join_room_success..............: 100.00% ✓ 30       ✗ 0   
+   ✗ leaderboard_latency............: avg=509.969697  min=3      med=27       max=4531     p(90)=1742    p(95)=2355   
+   ✗ update_player_latency..........: avg=627.905838  min=5      med=147      max=4000     p(90)=1944    p(95)=2372.5 
+     vus............................: 1       min=1      max=30
+     vus_max........................: 30      min=30     max=30
+
+═══════════════════════════════════════════════════
+  K6 Performance Test Summary: Multiplayer Load
+═══════════════════════════════════════════════════
+
+ Join Room Latency:
+   - median: 37.50ms
+   - p95:    1168.45ms (SLO: <300ms)
+
+ Get State Latency:
+   - median: 24.00ms
+   - p95:    1570.00ms (SLO: <200ms)
+
+ Leaderboard Latency:
+   - median: 27.00ms
+   - p95:    2355.00ms (SLO: <400ms)
+
+ Gameplay Endpoints:
+   News (p95):            2693.00ms
+   Recommendations (p95): 2446.50ms
+   Game Data (p95):       2920.00ms
+   Update Player (p95):   2372.50ms
+
+ Success Rates:
+   - Join Room: 100.00%
+   - HTTP Success: 99.53%
+
+═══════════════════════════════════════════════════
+
+running (7m14.9s), 00/30 VUs, 531 complete and 0 interrupted iterations
+default ✓ [======================================] 00/30 VUs  7m0s
+ERRO[0435] thresholds on metrics 'get_game_data_latency, get_news_latency, get_recommendations_latency, get_state_latency, http_req_duration, join_room_latency, leaderboard_latency, update_player_latency' have been crossed 

@@ -1,0 +1,57 @@
+# K6 Simple Recording Rules
+# K6 Prometheus remote write only exports p99 values, not full histograms
+# So we can't compute p50/p95 from buckets - we use what K6 provides
+
+groups:
+  - name: k6_metrics
+    interval: 15s
+    rules:
+      # K6 provides p99 only, so we'll use that for SLO tracking
+      # Note: These are already aggregated by K6, not raw histograms
+
+      - record: join_room_latency:p99
+        expr: k6_join_room_latency_p99
+
+      - record: get_state_latency:p99
+        expr: k6_get_state_latency_p99
+
+      - record: leaderboard_latency:p99
+        expr: k6_leaderboard_latency_p99
+
+      - record: get_news_latency:p99
+        expr: k6_get_news_latency_p99
+
+      - record: get_recommendations_latency:p99
+        expr: k6_get_recommendations_latency_p99
+
+      - record: get_game_data_latency:p99
+        expr: k6_get_game_data_latency_p99
+
+      - record: update_player_latency:p99
+        expr: k6_update_player_latency_p99
+
+      # Success rate
+      - record: join_room_success:rate
+        expr: k6_join_room_success_rate
+
+      # SLO Compliance (using p99 since p95 not available)
+      - record: slo:join_room:p99_under_300ms
+        expr: k6_join_room_latency_p99 < 300
+
+      - record: slo:get_state:p99_under_200ms
+        expr: k6_get_state_latency_p99 < 200
+
+      - record: slo:leaderboard:p99_under_400ms
+        expr: k6_leaderboard_latency_p99 < 400
+
+      - record: slo:get_news:p99_under_300ms
+        expr: k6_get_news_latency_p99 < 300
+
+      - record: slo:recommendations:p99_under_400ms
+        expr: k6_get_recommendations_latency_p99 < 400
+
+      - record: slo:game_data:p99_under_500ms
+        expr: k6_get_game_data_latency_p99 < 500
+
+      - record: slo:update_player:p99_under_300ms
+        expr: k6_update_player_latency_p99 < 300

@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from .core.config import settings
 from .routes import health_router, recommendations_router, game_router, news_router, multiplayer_router
@@ -70,6 +71,10 @@ app.include_router(recommendations_router, prefix=settings.API_PREFIX)
 app.include_router(game_router)
 app.include_router(news_router)
 app.include_router(multiplayer_router)
+
+# Prometheus metrics instrumentation
+# This exposes metrics at /metrics endpoint
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/")

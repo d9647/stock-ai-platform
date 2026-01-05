@@ -1,0 +1,107 @@
+# SLO Recording Rules
+# Pre-compute percentiles and success rates for dashboard performance
+# Backend is source of truth - measure actual response times
+
+groups:
+  - name: k6_slo_metrics
+    interval: 30s
+    rules:
+      # HTTP request duration percentiles by endpoint
+      - record: http_req_duration:p50:by_endpoint
+        expr: histogram_quantile(0.50, sum(rate(http_req_duration_bucket[5m])) by (name, le))
+
+      - record: http_req_duration:p95:by_endpoint
+        expr: histogram_quantile(0.95, sum(rate(http_req_duration_bucket[5m])) by (name, le))
+
+      # Success rate by endpoint (backend perspective)
+      - record: http_success_rate:by_endpoint
+        expr: |
+          sum(rate(http_reqs{status=~"2.."}[5m])) by (name)
+          /
+          sum(rate(http_reqs[5m])) by (name)
+
+      # Error rate by endpoint
+      - record: http_error_rate:by_endpoint
+        expr: |
+          sum(rate(http_reqs{status=~"[45].."}[5m])) by (name)
+          /
+          sum(rate(http_reqs[5m])) by (name)
+
+      # Request rate by endpoint
+      - record: http_req_rate:by_endpoint
+        expr: sum(rate(http_reqs[5m])) by (name)
+
+  - name: multiplayer_slo_metrics
+    interval: 30s
+    rules:
+      # Custom metrics for multiplayer endpoints
+      - record: join_room_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(join_room_latency_bucket[5m])) by (le))
+
+      - record: join_room_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(join_room_latency_bucket[5m])) by (le))
+
+      - record: get_state_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(get_state_latency_bucket[5m])) by (le))
+
+      - record: get_state_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(get_state_latency_bucket[5m])) by (le))
+
+      - record: leaderboard_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(leaderboard_latency_bucket[5m])) by (le))
+
+      - record: leaderboard_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(leaderboard_latency_bucket[5m])) by (le))
+
+      - record: get_news_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(get_news_latency_bucket[5m])) by (le))
+
+      - record: get_news_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(get_news_latency_bucket[5m])) by (le))
+
+      - record: get_recommendations_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(get_recommendations_latency_bucket[5m])) by (le))
+
+      - record: get_recommendations_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(get_recommendations_latency_bucket[5m])) by (le))
+
+      - record: get_game_data_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(get_game_data_latency_bucket[5m])) by (le))
+
+      - record: get_game_data_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(get_game_data_latency_bucket[5m])) by (le))
+
+      - record: update_player_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(update_player_latency_bucket[5m])) by (le))
+
+      - record: update_player_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(update_player_latency_bucket[5m])) by (le))
+
+      # Success rates for critical flows
+      - record: join_room_success:rate
+        expr: sum(rate(join_room_success[5m]))
+
+  - name: slo_compliance
+    interval: 1m
+    rules:
+      # Track SLO compliance (1 = meeting SLO, 0 = violating)
+      - record: slo:join_room:p95_under_300ms
+        expr: join_room_latency:p95 < 300
+
+      - record: slo:get_state:p95_under_200ms
+        expr: get_state_latency:p95 < 200
+
+      - record: slo:leaderboard:p95_under_400ms
+        expr: leaderboard_latency:p95 < 400
+
+      - record: slo:get_news:p95_under_300ms
+        expr: get_news_latency:p95 < 300
+
+      - record: slo:recommendations:p95_under_400ms
+        expr: get_recommendations_latency:p95 < 400
+
+      - record: slo:game_data:p95_under_500ms
+        expr: get_game_data_latency:p95 < 500
+
+      - record: slo:update_player:p95_under_300ms
+        expr: update_player_latency:p95 < 300
